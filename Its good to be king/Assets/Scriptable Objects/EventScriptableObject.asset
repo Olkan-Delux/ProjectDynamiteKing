@@ -25,8 +25,20 @@ MonoBehaviour:
   RelationAgeDependant: 0
   CanBeGottenAgain: 0
   ChanceOfHappening: 100
-  EventTitle: NIGGERS
-  EventText: NIGGERS NIGGERS
+  EventTitle: Jag sket ner mig
+  EventText: Jag sket ner mig
   buttonTexts:
-  - BAJSBAJSBAJS
-  - KISSKISSKISS
+  - "Skit ner dig \xE4nnu mer"
+  - Sug upp bajset igen
+  buttonResultEventText:
+  - "Du sket ner dig \xE4nnu mer"
+  - FAIL
+  buttonResultEventTitle:
+  - Hella bajs i byxan frfr
+  - "Du lyckades inte f\xF6r du \xE4r inte en gud"
+  buttonResultButtonText:
+  - NOICE
+  - Damn
+  buttonResults:
+  - results: []
+  - results: []

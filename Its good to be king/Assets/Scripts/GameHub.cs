@@ -13,6 +13,8 @@ public struct ButtonEvent
 public class ChanceEvent
 {
     public Event myEvent;
+    public List<Event> myResultEvents = new List<Event>();
+    public List<int> myResultEventsIndex = new List<int>();
     public GameHub.Job selectedJobOption;
     public GameHub.Job DependableJobOption;
     public GameHub.RelationType selectedRelationDependable;
@@ -31,7 +33,7 @@ public class ChanceEvent
     public string EventTitle;
     public string EventText;
     public List<string> buttonTexts;
-    public List<List<ResultData>> buttonResults = new List<List<ResultData>>();
+    public List<ResultDataRegistry> buttonResults = new List<ResultDataRegistry>();
 }
 
 public struct JobStatistics
@@ -152,8 +154,7 @@ public class GameHub : MonoBehaviour
         Income,
         Land,
         Job,
-        Child,
-        Wife
+        Character
     };
 
 
@@ -327,10 +328,22 @@ public class GameHub : MonoBehaviour
         {
             ChanceEvent aChanceEvent = new ChanceEvent();
             Event chanceEvent = factory.CreateEvent(myEvents.Events[i].EventTitle, myEvents.Events[i].EventText);
+            myChanceEvents.Add(aChanceEvent);
             for(int j = 0; j < myEvents.Events[i].buttonResults.Count; j++)
             {
+                Event chanceResultEvent = factory.CreateEvent(myEvents.Events[i].buttonResultEventTitle[i], myEvents.Events[i].buttonResultEventText[i]);
+                chanceResultEvent.SetCanvasAndButton(EventCanvas, EventButton, EventPanel);
+                myChanceEvents[i].myResultEvents.Add(chanceResultEvent);
+                //aChanceEvent.myResultEventsIndex.Add(j);
+                chanceResultEvent.AddEventDecision(myEvents.Events[i].buttonResultButtonText[j], () => {
+                    chanceResultEvent.DeActivate();
+                });
+                int currentI = i;
+                int currentJ = j;
                 chanceEvent.AddEventDecision(myEvents.Events[i].buttonTexts[j], () => {
                     myPlayer.ActivateEvent(EventType.Crusade);
+                    //myChanceEvents[currentI].myResultEvents[currentJ].Activate();
+                    myChanceEvents[currentI].myResultEvents[currentJ].Activate();
                     chanceEvent.DeActivate();
                 });
             }
@@ -354,7 +367,6 @@ public class GameHub : MonoBehaviour
             aChanceEvent.buttonTexts = myEvents.Events[i].buttonTexts;
             aChanceEvent.buttonResults = myEvents.Events[i].buttonResults;
 
-            myChanceEvents.Add(aChanceEvent);
             //myButtonEvents[(int)EventType.Crusade].myPossibleEvents.Add(chanceEvent);
             //myButtonEvents[(int)EventType.Wife].ChanseOfHappeningOutof100.Add(50);
         }

@@ -14,4 +14,3 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EventRegistryScriptableObject
   Events:
   - {fileID: 11400000, guid: c891e25a56449484ba3195f9bd289e2e, type: 2}
-  - {fileID: 11400000, guid: a77dd64256131dd4da0b8b21d3747ef5, type: 2}

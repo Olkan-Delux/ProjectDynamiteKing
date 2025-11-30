@@ -12,26 +12,32 @@ public class EventEditorWindow : EditorWindow
     private string assetPath = "";
     EventScriptableObject myAsset;
     EventRegistryScriptableObject myAssetRegistry;
-    GameHub.Job selectedJobOption = GameHub.Job.Peasant; 
-    GameHub.Job DependableJobOption = GameHub.Job.Peasant; 
-    GameHub.RelationType selectedRelationOption = GameHub.RelationType.Stranger; 
-    GameHub.RelationType selectedRelationDependable = GameHub.RelationType.Stranger; 
-    int relationAmount = 1;
-    int Age = 10;
-    bool JobDependant;
-    bool AgeDependant;
-    int DependableCharacterAge = 10;
-    bool DependableCharacterFlag = false;
-    bool RelationJobDependant = false;
-    bool RelationAgeDependant = false;
-    bool CanBeGottenAgain = false;
-    float ChanceOfHappening = 0.0f;
+    public GameHub.Job selectedJobOption = GameHub.Job.Peasant;
+    public GameHub.Job DependableJobOption = GameHub.Job.Peasant;
+    public GameHub.RelationType selectedRelationOption = GameHub.RelationType.Stranger;
+    public GameHub.RelationType selectedRelationDependable = GameHub.RelationType.Stranger;
+    public int relationAmount = 1;
+    public int Age = 10;
+    public EventScriptableObject.AgeRequierment myAgeRequierment;
+    public bool JobDependant;
+    public bool AgeDependant;
+    public int DependableCharacterAge = 10;
+    public EventScriptableObject.AgeRequierment myDependableAgeRequierment;
+    public bool DependableCharacterFlag = false;
+    public bool RelationJobDependant = false;
+    public bool RelationAgeDependant = false;
+    public bool CanBeGottenAgain = false;
+    public float ChanceOfHappening = 0.0f;
 
-    private string EventTitle = "";
-    private string EventText = "";
-    private List<string> buttonTexts = new List<string>();
-    private List<List<ResultData>> buttonResults = new List<List<ResultData>>();
-    int ButtonNumber = 0;
+    public string EventTitle = "";
+    public string EventText = "";
+    public List<string> buttonTexts = new List<string>();
+    public List<string> buttonResultEventText = new List<string>();
+    public List<string> buttonResultEventTitle = new List<string>();
+    public List<string> buttonResultButtonText = new List<string>();
+    public List<ResultDataRegistry> buttonResults = new List<ResultDataRegistry>();
+    public int ButtonNumber = 0;
+
 
 
     [MenuItem("Window/Event Editor Window")]
@@ -52,7 +58,10 @@ public class EventEditorWindow : EditorWindow
             {
                 ButtonNumber++;
                 buttonTexts.Add("");
-                buttonResults.Add(new List<ResultData>());
+                buttonResultEventText.Add("");
+                buttonResultEventTitle.Add("");
+                buttonResultButtonText.Add("");
+                buttonResults.Add(new ResultDataRegistry());
             }
         }
         for(int i = 0; i < ButtonNumber; i++)
@@ -75,6 +84,7 @@ public class EventEditorWindow : EditorWindow
         if (AgeDependant)
         {
             Age = EditorGUILayout.IntSlider("Age:", Age, 0, 100);
+            myAgeRequierment = (EventScriptableObject.AgeRequierment)EditorGUILayout.EnumPopup("Age Requierment:", myAgeRequierment);
         }
         EditorGUILayout.EndHorizontal();
         EditorGUILayout.BeginHorizontal();
@@ -127,6 +137,11 @@ public class EventEditorWindow : EditorWindow
             myAsset.EventText = EventText;
             myAsset.buttonTexts = buttonTexts;
             myAsset.buttonResults = buttonResults;
+            myAsset.buttonResultEventTitle = buttonResultEventTitle;
+            myAsset.buttonResultEventText = buttonResultEventText;
+            myAsset.buttonResultButtonText = buttonResultButtonText;
+            myAsset.myAgeRequierment = myAgeRequierment;
+            myAsset.myDependableAgeRequierment = myDependableAgeRequierment;
 
             myAssetRegistry.Events.Add(myAsset);
             EditorUtility.SetDirty(myAssetRegistry);
@@ -141,31 +156,34 @@ public class EventEditorWindow : EditorWindow
     {
         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
         buttonTexts[buttonIndex] = EditorGUILayout.TextField("Button Text:", buttonTexts[buttonIndex]);
+        buttonResultEventText[buttonIndex] = EditorGUILayout.TextField("Result Event Title:", buttonResultEventText[buttonIndex]);
+        buttonResultEventTitle[buttonIndex] = EditorGUILayout.TextField("Result Event Text:", buttonResultEventTitle[buttonIndex]);
+        buttonResultButtonText[buttonIndex] = EditorGUILayout.TextField("Result Event Button Text:", buttonResultButtonText[buttonIndex]);
         Color oldColor = GUI.backgroundColor;
         if (GUILayout.Button("Add Result"))
         {
-            buttonResults[buttonIndex].Add(new ResultData());
+            buttonResults[buttonIndex].results.Add(new ResultData());
         }
-        for(int i = 0; i < buttonResults[buttonIndex].Count; i++)
+        for(int i = 0; i < buttonResults[buttonIndex].results.Count; i++)
         {
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             GUILayout.Label("Result nr: " + (i+1).ToString());
-            buttonResults[buttonIndex][i].myResult = (GameHub.EventResult)EditorGUILayout.EnumPopup("Result Type:", buttonResults[buttonIndex][i].myResult);
-            switch(buttonResults[buttonIndex][i].myResult)
+            buttonResults[buttonIndex].results[i].myResult = (GameHub.EventResult)EditorGUILayout.EnumPopup("Result Type:", buttonResults[buttonIndex].results[i].myResult);
+            switch(buttonResults[buttonIndex].results[i].myResult)
             {
                 case GameHub.EventResult.Death:
                     {
-                        buttonResults[buttonIndex][i].myRelationType = (GameHub.RelationType)EditorGUILayout.EnumPopup("Relation To Die:", buttonResults[buttonIndex][i].myRelationType);
+                        buttonResults[buttonIndex].results[i].myRelationType = (GameHub.RelationType)EditorGUILayout.EnumPopup("Relation To Die:", buttonResults[buttonIndex].results[i].myRelationType);
                         break;
                     }
                 case GameHub.EventResult.Money:
                     {
-                        buttonResults[buttonIndex][i].myMoney = EditorGUILayout.IntSlider("Money Gotten:", buttonResults[buttonIndex][i].myMoney, -1000000, 1000000);
+                        buttonResults[buttonIndex].results[i].myMoney = EditorGUILayout.IntSlider("Money Gotten:", buttonResults[buttonIndex].results[i].myMoney, -1000000, 1000000);
                         break;
                     }
                 case GameHub.EventResult.Income:
                     {
-                        buttonResults[buttonIndex][i].myMoney = EditorGUILayout.IntSlider("Income Gotten:", buttonResults[buttonIndex][i].myMoney, -10000, 10000);
+                        buttonResults[buttonIndex].results[i].myMoney = EditorGUILayout.IntSlider("Income Gotten:", buttonResults[buttonIndex].results[i].myMoney, -10000, 10000);
                         break;
                     }
                 case GameHub.EventResult.Land:
@@ -174,22 +192,41 @@ public class EventEditorWindow : EditorWindow
                     }
                 case GameHub.EventResult.Job:
                     {
-                        buttonResults[buttonIndex][i].myJob = (GameHub.Job)EditorGUILayout.EnumPopup("Job Gotten:", buttonResults[buttonIndex][i].myJob);
+                        buttonResults[buttonIndex].results[i].myJob = (GameHub.Job)EditorGUILayout.EnumPopup("Job Gotten:", buttonResults[buttonIndex].results[i].myJob);
                         break;
                     }
-                case GameHub.EventResult.Wife:
+                case GameHub.EventResult.Character:
                     {
-                        break;
-                    }
-                case GameHub.EventResult.Child:
-                    {
+                        GUILayout.Label("Character Creation");
+                        EditorGUILayout.BeginHorizontal();
+                        buttonResults[buttonIndex].results[i].ShouldHaveJob = EditorGUILayout.Toggle("Should Have job", buttonResults[buttonIndex].results[i].ShouldHaveJob);
+                        if(buttonResults[buttonIndex].results[i].ShouldHaveJob)
+                        {
+                            buttonResults[buttonIndex].results[i].RandomizeJob = EditorGUILayout.Toggle("Randomize Job", buttonResults[buttonIndex].results[i].RandomizeJob);
+                            if(buttonResults[buttonIndex].results[i].RandomizeJob == false)
+                            {
+                                buttonResults[buttonIndex].results[i].CharacterJob = (GameHub.Job)EditorGUILayout.EnumPopup("Job:", buttonResults[buttonIndex].results[i].CharacterJob);
+                            }
+                        }
+                        EditorGUILayout.EndHorizontal();
+                        EditorGUILayout.BeginHorizontal();
+                        buttonResults[buttonIndex].results[i].RandomizeAge = EditorGUILayout.Toggle("Randomize Age", buttonResults[buttonIndex].results[i].RandomizeAge);
+                        if(buttonResults[buttonIndex].results[i].RandomizeAge == false)
+                        {
+                            buttonResults[buttonIndex].results[i].CharacterAge = EditorGUILayout.IntSlider("Age:", buttonResults[buttonIndex].results[i].CharacterAge, 0, 100);
+                        }
+                        EditorGUILayout.EndHorizontal();
+                        EditorGUILayout.BeginHorizontal();
+                        buttonResults[buttonIndex].results[i].CharacterRelation = (GameHub.RelationType)EditorGUILayout.EnumPopup("Relation Type:", buttonResults[buttonIndex].results[i].CharacterRelation);
+                        EditorGUILayout.EndHorizontal();
+
                         break;
                     }
             }
             GUI.backgroundColor = Color.red;
             if (GUILayout.Button("Remove Result"))
             {
-                buttonResults[buttonIndex].RemoveAt(i);
+                buttonResults[buttonIndex].results.RemoveAt(i);
             }
             GUI.backgroundColor = oldColor;
             EditorGUILayout.EndVertical();
@@ -201,6 +238,9 @@ public class EventEditorWindow : EditorWindow
         {
             buttonTexts.RemoveAt(buttonIndex);
             buttonResults.RemoveAt(buttonIndex);
+            buttonResultButtonText.RemoveAt(buttonIndex);
+            buttonResultEventTitle.RemoveAt(buttonIndex);
+            buttonResultEventText.RemoveAt(buttonIndex);
             ButtonNumber--;
         }
         GUI.backgroundColor = oldColor;
@@ -221,6 +261,7 @@ public class EventEditorWindow : EditorWindow
         if (RelationAgeDependant)
         {
             DependableCharacterAge = EditorGUILayout.IntSlider("Dependable Age:", DependableCharacterAge, 0, 100);
+            myDependableAgeRequierment = (EventScriptableObject.AgeRequierment)EditorGUILayout.EnumPopup("Dependable Age Requierment:", myDependableAgeRequierment);
         }
         EditorGUILayout.EndHorizontal();
         EditorGUILayout.BeginHorizontal();
