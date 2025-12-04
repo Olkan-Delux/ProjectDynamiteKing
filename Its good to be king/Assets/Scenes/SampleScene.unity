@@ -2747,6 +2747,10 @@ MonoBehaviour:
   ChildTopAge: 0
   YoungAdultTopAge: 0
   AdultTopAge: 0
+  allCharacters: []
+  myNames: {fileID: 11400000, guid: 3d3684945fa6cd74abe4662164654c13, type: 2}
+  myBoyNames: []
+  myGirlNames: []
   myEvents: {fileID: 11400000, guid: d6d248da7f064b149937230c06cb28ee, type: 2}
 --- !u!4 &784019013
 Transform:
@@ -4790,6 +4794,66 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a8c9c3921f922f04fa8161674980fa8c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  myCharacter:
+    myIsDead: 0
+    myVibe: 0
+    myAge: 0
+    myHealth: 100
+    mySalary: 0
+    myName: 
+    myButtonName: 
+    myJob: 0
+    myGender: 0
+    myMoney:
+      Copper: 0
+      Silver: 0
+      Gold: 0
+    myRelations: []
+    myOwnedLand: 
+    myChanceOfDyingEachYear: 0
+    hasPartner: 0
+    hasParents: 0
+    hasBeenCheckedThisRound: 0
+  myInteraction:
+    myIsDead: 0
+    myVibe: 0
+    myAge: 0
+    myHealth: 100
+    mySalary: 0
+    myName: 
+    myButtonName: 
+    myJob: 0
+    myGender: 0
+    myMoney:
+      Copper: 0
+      Silver: 0
+      Gold: 0
+    myRelations: []
+    myOwnedLand: 
+    myChanceOfDyingEachYear: 0
+    hasPartner: 0
+    hasParents: 0
+    hasBeenCheckedThisRound: 0
+  myHeir:
+    myIsDead: 0
+    myVibe: 0
+    myAge: 0
+    myHealth: 100
+    mySalary: 0
+    myName: 
+    myButtonName: 
+    myJob: 0
+    myGender: 0
+    myMoney:
+      Copper: 0
+      Silver: 0
+      Gold: 0
+    myRelations: []
+    myOwnedLand: 
+    myChanceOfDyingEachYear: 0
+    hasPartner: 0
+    hasParents: 0
+    hasBeenCheckedThisRound: 0
 --- !u!4 &2142633652
 Transform:
   m_ObjectHideFlags: 0

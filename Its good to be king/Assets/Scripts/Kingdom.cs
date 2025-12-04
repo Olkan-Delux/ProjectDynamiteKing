@@ -8,7 +8,7 @@ public class Kingdom
     public List<Map.CellData> myLands;
     public Color myColor;
     public Character myOwner;
-    public GameHub.NameRegion myNameRegion;
+    public NameRegion myNameRegion;
     public int kingdomIndex;
     public bool hasBeenDefeated = false;
 

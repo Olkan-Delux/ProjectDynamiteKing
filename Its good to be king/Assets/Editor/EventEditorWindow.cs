@@ -31,6 +31,7 @@ public class EventEditorWindow : EditorWindow
 
     public string EventTitle = "";
     public string EventText = "";
+    public List<bool> HasSecondEvent = new List<bool>();
     public List<string> buttonTexts = new List<string>();
     public List<string> buttonResultEventText = new List<string>();
     public List<string> buttonResultEventTitle = new List<string>();
@@ -61,6 +62,7 @@ public class EventEditorWindow : EditorWindow
                 buttonResultEventText.Add("");
                 buttonResultEventTitle.Add("");
                 buttonResultButtonText.Add("");
+                HasSecondEvent.Add(false);
                 buttonResults.Add(new ResultDataRegistry());
             }
         }
@@ -142,11 +144,37 @@ public class EventEditorWindow : EditorWindow
             myAsset.buttonResultButtonText = buttonResultButtonText;
             myAsset.myAgeRequierment = myAgeRequierment;
             myAsset.myDependableAgeRequierment = myDependableAgeRequierment;
+            myAsset.ChanceOfHappening = ChanceOfHappening;
+            myAsset.HasSecondEvent = HasSecondEvent;
 
             myAssetRegistry.Events.Add(myAsset);
             EditorUtility.SetDirty(myAssetRegistry);
             EditorUtility.SetDirty(myAsset);
             AssetDatabase.SaveAssets();
+
+            selectedJobOption = GameHub.Job.Peasant;
+            DependableJobOption = GameHub.Job.Peasant;
+            selectedRelationOption = GameHub.RelationType.Stranger;
+            selectedRelationDependable = GameHub.RelationType.Stranger;
+            relationAmount = 1;
+            JobDependant = false;
+            AgeDependant = false;
+            DependableCharacterFlag = false;
+            RelationJobDependant = false;
+            RelationAgeDependant = false;
+            CanBeGottenAgain = false;
+            DependableCharacterAge = 10;
+            ChanceOfHappening = 0f;
+            Age = 10;
+            EventTitle = "";
+            EventText = "";
+            buttonTexts.Clear();
+            buttonResults.Clear();
+            buttonResultEventText.Clear();
+            buttonResultEventTitle.Clear();
+            buttonResultButtonText.Clear();
+            HasSecondEvent.Clear();
+            ButtonNumber = 0;
 
         }
         GUI.backgroundColor = oldColor;
@@ -156,9 +184,15 @@ public class EventEditorWindow : EditorWindow
     {
         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
         buttonTexts[buttonIndex] = EditorGUILayout.TextField("Button Text:", buttonTexts[buttonIndex]);
-        buttonResultEventText[buttonIndex] = EditorGUILayout.TextField("Result Event Title:", buttonResultEventText[buttonIndex]);
-        buttonResultEventTitle[buttonIndex] = EditorGUILayout.TextField("Result Event Text:", buttonResultEventTitle[buttonIndex]);
-        buttonResultButtonText[buttonIndex] = EditorGUILayout.TextField("Result Event Button Text:", buttonResultButtonText[buttonIndex]);
+        HasSecondEvent[buttonIndex] = EditorGUILayout.Toggle("Has Result Event:", HasSecondEvent[buttonIndex]);
+        if(HasSecondEvent[buttonIndex])
+        {
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            buttonResultEventText[buttonIndex] = EditorGUILayout.TextField("Result Event Title:", buttonResultEventText[buttonIndex]);
+            buttonResultEventTitle[buttonIndex] = EditorGUILayout.TextField("Result Event Text:", buttonResultEventTitle[buttonIndex]);
+            buttonResultButtonText[buttonIndex] = EditorGUILayout.TextField("Result Event Button Text:", buttonResultButtonText[buttonIndex]);
+            EditorGUILayout.EndVertical();
+        }
         Color oldColor = GUI.backgroundColor;
         if (GUILayout.Button("Add Result"))
         {
@@ -219,6 +253,15 @@ public class EventEditorWindow : EditorWindow
                         EditorGUILayout.BeginHorizontal();
                         buttonResults[buttonIndex].results[i].CharacterRelation = (GameHub.RelationType)EditorGUILayout.EnumPopup("Relation Type:", buttonResults[buttonIndex].results[i].CharacterRelation);
                         EditorGUILayout.EndHorizontal();
+                        EditorGUILayout.BeginHorizontal();
+
+                        buttonResults[buttonIndex].results[i].RandomizeGender = EditorGUILayout.Toggle("Randomize Gender", buttonResults[buttonIndex].results[i].RandomizeGender);
+                        buttonResults[buttonIndex].results[i].OppositeGender = EditorGUILayout.Toggle("Is Opposite Gender of Player", buttonResults[buttonIndex].results[i].OppositeGender);
+                        if(buttonResults[buttonIndex].results[i].RandomizeGender == false && buttonResults[buttonIndex].results[i].OppositeGender == false)
+                        {
+                            buttonResults[buttonIndex].results[i].CharacterGender = (GameHub.Gender)EditorGUILayout.EnumPopup("Character Gender:", buttonResults[buttonIndex].results[i].CharacterGender);
+                        }
+                        EditorGUILayout.EndHorizontal();
 
                         break;
                     }
@@ -241,6 +284,7 @@ public class EventEditorWindow : EditorWindow
             buttonResultButtonText.RemoveAt(buttonIndex);
             buttonResultEventTitle.RemoveAt(buttonIndex);
             buttonResultEventText.RemoveAt(buttonIndex);
+            HasSecondEvent.RemoveAt(buttonIndex);
             ButtonNumber--;
         }
         GUI.backgroundColor = oldColor;

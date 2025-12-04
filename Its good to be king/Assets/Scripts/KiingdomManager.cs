@@ -151,25 +151,10 @@ public class KiingdomManager
         {
             king.myGender = GameHub.Gender.Boy;
         }
-        kd.myNameRegion = GetRandomRegion();
-        king.myName = GameHub.Instance.GetRandomName(king.myGender, kd.myNameRegion);
+        kd.myNameRegion = GameHub.Instance.GetRegion();
+        king.myName = GameHub.Instance.GetRandomName(king.myGender);
         king.myJob = GameHub.Job.King;
         kd.myOwner = king;
-    }
-
-    private GameHub.NameRegion GetRandomRegion()
-    {
-        int regionChance = Random.Range(0, 100);
-        GameHub.NameRegion nameRegion = GameHub.NameRegion.SheeshMama;
-        if(regionChance < 45)
-        {
-            nameRegion = GameHub.NameRegion.Nordic;
-        }
-        else if(regionChance < 90)
-        {
-            nameRegion = GameHub.NameRegion.English;
-        }
-        return nameRegion;
     }
 
     private void SearchForExpansion(int chanceToExpand, int chanceToExpandDecrease, int depth, Kingdom kingdom, int siteIndex, Voronoi voronoi, List<MoreCellData> cells, Map.CellData[] celldatas, float distanceTooFar)

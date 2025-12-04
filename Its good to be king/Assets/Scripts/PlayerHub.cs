@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
 public struct Money
 {
     public int Copper;
@@ -17,9 +18,9 @@ public struct AgeDeathIncrease
 
 public class PlayerHub : MonoBehaviour
 {
-    Character myCharacter;
-    Character myInteraction;
-    Character myHeir;
+    public Character myCharacter;
+    public Character myInteraction;
+    public Character myHeir;
     List<AgeDeathIncrease> PlayerDeathRatePlan;
     public List<AgeDeathIncrease> AIDeathRatePlan;
 
@@ -243,7 +244,7 @@ public class PlayerHub : MonoBehaviour
             PartnerGender = GameHub.Gender.Girl;
         }
         Character wife = myCharacter.AddRelation(GameHub.Instance.CreateRandomCharacter(myCharacter.GetAgeRange()), GameHub.RelationType.Wife);
-        wife.myName = GameHub.Instance.GetRandomName(GameHub.Gender.Girl, GameHub.NameRegion.English);
+        wife.myName = GameHub.Instance.GetRandomName(GameHub.Gender.Girl);
         wife.myGender = PartnerGender;
         wife.AddRelation(myCharacter, GameHub.RelationType.Wife);
         gameObject.GetComponent<RelationsShips>().AddRelationToMenu(GameHub.RelationType.Wife, wife, myCharacter);
@@ -301,14 +302,14 @@ public class PlayerHub : MonoBehaviour
                 job = GameHub.Instance.GetRandomJob();
             }
             int vibe = Random.Range(1,10);
-            dad.CreateCharacter(dadAge, vibe, GameHub.Instance.GetRandomName(GameHub.Gender.Boy, GameHub.NameRegion.English), job, GameHub.Gender.Boy);
+            dad.CreateCharacter(dadAge, vibe, GameHub.Instance.GetRandomName(GameHub.Gender.Boy), job, GameHub.Gender.Boy);
             myCharacter.AddRelation(dad, GameHub.RelationType.Father);
         }
         Character mom= new Character();
         if(Random.Range(0,100) > ChanceMotherDies)
         {
             int vibe = Random.Range(1, 10);
-            mom.CreateCharacter(momAge, vibe, GameHub.Instance.GetRandomName(GameHub.Gender.Girl, GameHub.NameRegion.English), GameHub.Job.Nothing, GameHub.Gender.Girl);
+            mom.CreateCharacter(momAge, vibe, GameHub.Instance.GetRandomName(GameHub.Gender.Girl), GameHub.Job.Nothing, GameHub.Gender.Girl);
             myCharacter.AddRelation(mom, GameHub.RelationType.Mother);
         }
 
@@ -336,12 +337,12 @@ public class PlayerHub : MonoBehaviour
                 int vibe = Random.Range(1,10);
                 if(gender == 0)
                 {
-                    sibling.CreateCharacter(momAge - (18 + i), vibe, GameHub.Instance.GetRandomName(GameHub.Gender.Boy, GameHub.NameRegion.English), job, GameHub.Gender.Boy);
+                    sibling.CreateCharacter(momAge - (18 + i), vibe, GameHub.Instance.GetRandomName(GameHub.Gender.Boy), job, GameHub.Gender.Boy);
                     myCharacter.AddRelation(sibling, GameHub.RelationType.Brother);
                 }
                 else
                 {
-                    sibling.CreateCharacter(momAge - (18 + i), vibe, GameHub.Instance.GetRandomName(GameHub.Gender.Girl, GameHub.NameRegion.English), job, GameHub.Gender.Girl);
+                    sibling.CreateCharacter(momAge - (18 + i), vibe, GameHub.Instance.GetRandomName(GameHub.Gender.Girl), job, GameHub.Gender.Girl);
                     myCharacter.AddRelation(sibling, GameHub.RelationType.Sister);
                 }
             }

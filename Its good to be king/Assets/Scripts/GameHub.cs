@@ -20,6 +20,8 @@ public class ChanceEvent
     public GameHub.RelationType selectedRelationDependable;
     public int relationAmount;
     public int Age;
+    public EventScriptableObject.AgeRequierment myAgeRequierment;
+    public EventScriptableObject.AgeRequierment myDependableAgeRequierment;
     public int DependableCharacterAge;
     public bool JobDependant;
     public bool AgeDependant;
@@ -44,11 +46,6 @@ public struct JobStatistics
     public int myJobSalary;
 }
 
-public struct RegionNames
-{
-    public string[] girlNames;
-    public string[] boyNames;
-}
 public class GameHub : MonoBehaviour
 {
     public enum Gender
@@ -139,14 +136,6 @@ public class GameHub : MonoBehaviour
         Senior
     }
 
-    public enum NameRegion
-    {
-        Nordic,
-        English,
-        SheeshMama,
-        Count
-    }
-
     public enum EventResult
     {
         Death,
@@ -174,10 +163,12 @@ public class GameHub : MonoBehaviour
     public int AdultTopAge;
     public List<Character> allCharacters;
     public JobStatistics[] myJobStatistics;
-    private RegionNames[] myRegionNames;
     private KiingdomManager myKingdomManager;
-
+    public NameScriptableObject myNames;
+    public List<string> myBoyNames = new List<string>();
+    public List<string> myGirlNames = new List<string>();
     public EventRegistryScriptableObject myEvents;
+    private NameRegion myHeadRegion;
 
     public static GameHub Instance{ get { return instance; } }
 
@@ -216,6 +207,11 @@ public class GameHub : MonoBehaviour
         return myPlayer;
     }
 
+    public NameRegion GetRegion()
+    {
+        return myHeadRegion;
+    }
+
     public void AddCharacter(Character aCharacter)
     {
         allCharacters.Add(aCharacter);
@@ -242,9 +238,20 @@ public class GameHub : MonoBehaviour
             {
                 shouldActivateEvent = false;
             }
-            if (myChanceEvents[i].AgeDependant && myPlayer.GetPlayerCharacter().myAge != myChanceEvents[i].Age)
+            if (myChanceEvents[i].AgeDependant)
             {
-                shouldActivateEvent = false;
+                if (myChanceEvents[i].myAgeRequierment == EventScriptableObject.AgeRequierment.Exact && myPlayer.GetPlayerCharacter().myAge != myChanceEvents[i].Age)
+                {
+                    shouldActivateEvent = false;
+                }
+                else if(myChanceEvents[i].myAgeRequierment == EventScriptableObject.AgeRequierment.Below && myPlayer.GetPlayerCharacter().myAge > myChanceEvents[i].Age)
+                {
+                    shouldActivateEvent = false;
+                }
+                else if(myChanceEvents[i].myAgeRequierment == EventScriptableObject.AgeRequierment.Above && myPlayer.GetPlayerCharacter().myAge < myChanceEvents[i].Age)
+                {
+                    shouldActivateEvent = false;
+                }
             }
             if(myChanceEvents[i].ChanceOfHappening < Random.Range(0, 100))
             {
@@ -255,9 +262,20 @@ public class GameHub : MonoBehaviour
                 Character selectedCharacter = myPlayer.GetPlayerCharacter().GetCharacterFromRelationType(myChanceEvents[i].selectedRelationDependable)[0];
                 if(selectedCharacter != null)
                 {
-                    if(selectedCharacter.myAge < myChanceEvents[i].DependableCharacterAge)
+                    if(myChanceEvents[i].RelationAgeDependant)
                     {
-                        shouldActivateEvent = false;
+                        if (myChanceEvents[i].myDependableAgeRequierment == EventScriptableObject.AgeRequierment.Exact && selectedCharacter.myAge != myChanceEvents[i].DependableCharacterAge)
+                        {
+                            shouldActivateEvent = false;
+                        }
+                        else if (myChanceEvents[i].myDependableAgeRequierment == EventScriptableObject.AgeRequierment.Below && selectedCharacter.myAge > myChanceEvents[i].DependableCharacterAge)
+                        {
+                            shouldActivateEvent = false;
+                        }
+                        else if (myChanceEvents[i].myDependableAgeRequierment == EventScriptableObject.AgeRequierment.Above && selectedCharacter.myAge < myChanceEvents[i].DependableCharacterAge)
+                        {
+                            shouldActivateEvent = false;
+                        }
                     }
                     if(selectedCharacter.myJob != myChanceEvents[i].DependableJobOption)
                     {
@@ -279,32 +297,27 @@ public class GameHub : MonoBehaviour
 
     void ReadNames()
     {
-        myRegionNames = new RegionNames[(int)NameRegion.Count];
-        string path = "Assets/TextFiles/Names.txt";
-        StreamReader reader = new StreamReader(path);
-        string entiretext = reader.ReadToEnd();
-        string[] regions = entiretext.Split(',');
-        for(int i = 0; i < regions.Length; i++)
-        { 
-            string[] genders = regions[i].Split('/');
-            string[] boyNames = genders[0].Split('\n');
-            string[] girlNames = genders[1].Split('\n');
-            myRegionNames[i].boyNames = boyNames;
-            myRegionNames[i].girlNames = girlNames;
+        if(myNames.myRegions.Count <= 0)
+        {
+            Debug.Log("There are no names??");
         }
-        reader.Close();
+        int selectedRegion = Random.Range(0, myNames.myRegions.Count - 1);
+        myHeadRegion = myNames.myRegions[selectedRegion];
+
+        myGirlNames = myHeadRegion.FemaleNames;
+        myBoyNames = myHeadRegion.MaleNames;
     }
 
-    public string GetRandomName(Gender aGender, NameRegion aRegion)
+    public string GetRandomName(Gender aGender)
     {
         string name;
         if(aGender == Gender.Boy)
         {
-            name = myRegionNames[(int)aRegion].boyNames[Random.Range(0, myRegionNames[(int)aRegion].boyNames.Length)];
+            name = myBoyNames[Random.Range(0, myBoyNames.Count - 1)];
         }
         else 
         {
-            name = myRegionNames[(int)aRegion].boyNames[Random.Range(0, myRegionNames[(int)aRegion].girlNames.Length)];
+            name = myGirlNames[Random.Range(0, myGirlNames.Count - 1)];
         }
         return name;
     }
@@ -331,19 +344,26 @@ public class GameHub : MonoBehaviour
             myChanceEvents.Add(aChanceEvent);
             for(int j = 0; j < myEvents.Events[i].buttonResults.Count; j++)
             {
-                Event chanceResultEvent = factory.CreateEvent(myEvents.Events[i].buttonResultEventTitle[i], myEvents.Events[i].buttonResultEventText[i]);
-                chanceResultEvent.SetCanvasAndButton(EventCanvas, EventButton, EventPanel);
-                myChanceEvents[i].myResultEvents.Add(chanceResultEvent);
-                //aChanceEvent.myResultEventsIndex.Add(j);
-                chanceResultEvent.AddEventDecision(myEvents.Events[i].buttonResultButtonText[j], () => {
-                    chanceResultEvent.DeActivate();
-                });
+                if (myEvents.Events[i].HasSecondEvent[j])
+                {
+                    Event chanceResultEvent = factory.CreateEvent(myEvents.Events[i].buttonResultEventTitle[i], myEvents.Events[i].buttonResultEventText[i]);
+                    chanceResultEvent.SetCanvasAndButton(EventCanvas, EventButton, EventPanel);
+                    myChanceEvents[i].myResultEvents.Add(chanceResultEvent);
+                    //aChanceEvent.myResultEventsIndex.Add(j);
+                    chanceResultEvent.AddEventDecision(myEvents.Events[i].buttonResultButtonText[j], () =>
+                    {
+                        chanceResultEvent.DeActivate();
+                    });
+                }
                 int currentI = i;
                 int currentJ = j;
                 chanceEvent.AddEventDecision(myEvents.Events[i].buttonTexts[j], () => {
                     myPlayer.ActivateEvent(EventType.Crusade);
                     //myChanceEvents[currentI].myResultEvents[currentJ].Activate();
-                    myChanceEvents[currentI].myResultEvents[currentJ].Activate();
+                    if(myEvents.Events[currentI].HasSecondEvent[currentJ])
+                    {
+                        myChanceEvents[currentI].myResultEvents[currentJ].Activate();
+                    }
                     chanceEvent.DeActivate();
                 });
             }
@@ -366,6 +386,8 @@ public class GameHub : MonoBehaviour
             aChanceEvent.EventText = myEvents.Events[i].EventText;
             aChanceEvent.buttonTexts = myEvents.Events[i].buttonTexts;
             aChanceEvent.buttonResults = myEvents.Events[i].buttonResults;
+            aChanceEvent.myAgeRequierment = myEvents.Events[i].myAgeRequierment;
+            aChanceEvent.myDependableAgeRequierment = myEvents.Events[i].myDependableAgeRequierment;
 
             //myButtonEvents[(int)EventType.Crusade].myPossibleEvents.Add(chanceEvent);
             //myButtonEvents[(int)EventType.Wife].ChanseOfHappeningOutof100.Add(50);
@@ -464,7 +486,7 @@ public class GameHub : MonoBehaviour
         int age = GetRandomAgeFromAgeBracket(anAge);
         Job job = GetRandomJob();
         Character randomCharacter = new Character();
-        randomCharacter.CreateCharacter(age, 4, GetRandomName((Gender)randomGender, NameRegion.Nordic), job, (Gender)randomGender);
+        randomCharacter.CreateCharacter(age, 4, GetRandomName((Gender)randomGender), job, (Gender)randomGender);
         return randomCharacter;
     }
 

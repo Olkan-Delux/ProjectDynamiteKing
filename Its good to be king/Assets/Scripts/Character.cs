@@ -1,13 +1,13 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+[System.Serializable]
 public struct Relation
 {
     public Character myRelation;
     public GameHub.RelationType relationType;
 }
-
+[System.Serializable]
 public class Character
 {
     public bool myIsDead = false;
@@ -86,7 +86,7 @@ public class Character
                         }
                         RandomAge = Random.Range(myAge - 10,myAge + 2);
                     }
-                    partner.CreateCharacter(RandomAge, 5, GameHub.Instance.GetRandomName(GameHub.Gender.Boy, GameHub.NameRegion.English), GameHub.Instance.GetRandomJob(), GameHub.Gender.Boy);
+                    partner.CreateCharacter(RandomAge, 5, GameHub.Instance.GetRandomName(GameHub.Gender.Boy), GameHub.Instance.GetRandomJob(), GameHub.Gender.Boy);
                 }
                 else 
                 {
@@ -99,7 +99,7 @@ public class Character
                         }
                         RandomAge = Random.Range(myAge - 2, myAge + 10);
                     }
-                    partner.CreateCharacter(RandomAge, 5, GameHub.Instance.GetRandomName(GameHub.Gender.Girl, GameHub.NameRegion.English), GameHub.Job.Nothing, GameHub.Gender.Girl);
+                    partner.CreateCharacter(RandomAge, 5, GameHub.Instance.GetRandomName(GameHub.Gender.Girl), GameHub.Job.Nothing, GameHub.Gender.Girl);
                     partner.myJob = GameHub.Job.Nothing;
                 }
                 AddRelation(partner, GameHub.RelationType.Wife);
@@ -164,14 +164,14 @@ public class Character
             bool momIsDead = !GetIfPersonDies(18, momAge);
             if (dadIsDead)
             {
-                dad.CreateCharacter(dadAge, 5, GameHub.Instance.GetRandomName(GameHub.Gender.Boy, GameHub.NameRegion.English), GameHub.Instance.GetRandomJob(), GameHub.Gender.Boy);
+                dad.CreateCharacter(dadAge, 5, GameHub.Instance.GetRandomName(GameHub.Gender.Boy), GameHub.Instance.GetRandomJob(), GameHub.Gender.Boy);
                 AddRelation(dad, GameHub.RelationType.Father);
                 dad.AddRelation(this, GameHub.RelationType.Child);
                 dad.hasPartner = true;
             }
             if(momIsDead)
             {
-                mom.CreateCharacter(momAge, 5, GameHub.Instance.GetRandomName(GameHub.Gender.Girl, GameHub.NameRegion.English), GameHub.Job.Nothing, GameHub.Gender.Girl);
+                mom.CreateCharacter(momAge, 5, GameHub.Instance.GetRandomName(GameHub.Gender.Girl), GameHub.Job.Nothing, GameHub.Gender.Girl);
                 AddRelation(mom, GameHub.RelationType.Mother);
                 mom.AddRelation(this, GameHub.RelationType.Child);
                 mom.hasPartner = true;

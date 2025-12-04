@@ -30,6 +30,7 @@ public class EventScriptableObject : ScriptableObject
 
     public string EventTitle;
     public string EventText;
+    public List<bool> HasSecondEvent;
     public List<string> buttonTexts;
     public List<string> buttonResultEventText;
     public List<string> buttonResultEventTitle;
@@ -64,9 +65,12 @@ public class ResultData
     public bool RandomizeAge = false;
     public bool ShouldHaveJob = false;
     public bool RandomizeJob = false;
+    public bool RandomizeGender = false;
+    public bool OppositeGender = false;
     public int CharacterAge = 0;
     public GameHub.Job CharacterJob = GameHub.Job.Nothing;
     public GameHub.RelationType CharacterRelation = GameHub.RelationType.Stranger;
+    public GameHub.Gender CharacterGender = GameHub.Gender.Girl;
 }
 
 [System.Serializable]

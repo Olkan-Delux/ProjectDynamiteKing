@@ -17,6 +17,8 @@ MonoBehaviour:
   selectedRelationDependable: 7
   relationAmount: 1
   Age: 0
+  myAgeRequierment: 0
+  myDependableAgeRequierment: 0
   DependableCharacterAge: 10
   JobDependant: 0
   AgeDependant: 0
@@ -27,6 +29,7 @@ MonoBehaviour:
   ChanceOfHappening: 100
   EventTitle: Jag sket ner mig
   EventText: Jag sket ner mig
+  HasSecondEvent: 0100
   buttonTexts:
   - "Skit ner dig \xE4nnu mer"
   - Sug upp bajset igen
@@ -39,6 +42,13 @@ MonoBehaviour:
   buttonResultButtonText:
   - NOICE
   - Damn
+  RandomizeName: 0
+  RandomizeAge: 0
+  ShouldHaveJob: 0
+  RandomizeJob: 0
+  CharacterAge: 0
+  CharacterJob: 0
+  CharacterRelation: 7
   buttonResults:
   - results: []
   - results: []
