@@ -13,4 +13,5 @@ MonoBehaviour:
   m_Name: EventDataRegistry
   m_EditorClassIdentifier: Assembly-CSharp::EventRegistryScriptableObject
   Events:
+  - {fileID: 11400000, guid: 8d81bb36fef755f448063a180bc5d730, type: 2}
   - {fileID: 11400000, guid: c891e25a56449484ba3195f9bd289e2e, type: 2}

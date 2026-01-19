@@ -39,9 +39,9 @@ public class RelationsShips : MonoBehaviour
         //menu.CreateText(MenuButton, new Vector2(MenuButton.GetComponent<RectTransform>().localPosition.x + (MenuButton.GetComponent<RectTransform>().sizeDelta.x * 0.4f), MenuButton.GetComponent<RectTransform>().position.y),aCharater.myAge.ToString());
         //GameObject text;
         string characterJob;
-        if (aCharater.myJob != GameHub.Job.Nothing)
+        if (aCharater.myJob != null)
         {
-            characterJob = System.Enum.GetName(typeof(GameHub.Job), aCharater.myJob);
+            characterJob = aCharater.myJob.myJob;
         }
         else
         {
@@ -72,13 +72,9 @@ public class RelationsShips : MonoBehaviour
             Relation character = player.GetPlayerCharacter().GetRelationFromButton(button.myName);
             string characterJob;
 
-            if(character.myRelation == null)
+            if (character.myRelation.myJob != null)
             {
-                int bajs = 0;
-            }
-            if (character.myRelation.myJob != GameHub.Job.Nothing)
-            {
-                characterJob = System.Enum.GetName(typeof(GameHub.Job), character.myRelation.myJob);
+                characterJob = character.myRelation.myJob.myJob;
             }
             else
             {

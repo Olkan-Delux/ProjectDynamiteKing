@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 [System.Serializable]
-public struct Relation
+public class Relation
 {
     public Character myRelation;
     public GameHub.RelationType relationType;
@@ -17,7 +17,7 @@ public class Character
     public int mySalary = 0;
     public string myName;
     public string myButtonName;
-    public GameHub.Job myJob;
+    public Jobb myJob;
     public GameHub.Gender myGender;
     public Money myMoney;
     public List<Relation> myRelations;
@@ -26,9 +26,11 @@ public class Character
     public bool hasPartner = false;
     public bool hasParents = false;
     public bool hasBeenCheckedThisRound = false;
-    private int AgeWhenLastPressed = 0;
+    public int AgeWhenLastPressed = 0;
+    public GameHub.SocialClass mySocialClass = GameHub.SocialClass.Commoner;
+    public List<Characteristic> myCharacteristics = new List<Characteristic>();
 
-    public void CreateCharacter(int age, int aVibe, string aName, GameHub.Job aJob, GameHub.Gender aGender)
+    public void CreateCharacter(int age, int aVibe, string aName, Jobb aJob, GameHub.Gender aGender)
     {
         myRelations = new List<Relation>();
         myOwnedLand = new List<int>();
@@ -52,13 +54,22 @@ public class Character
         }
     }
 
+    public void AddMoney(int anAmount)
+    {
+        myMoney.Gold = anAmount / 10000;
+        anAmount %= 10000;
+        myMoney.Silver = anAmount / 100;
+        anAmount %= 100;
+        myMoney.Copper = anAmount;
+    }
+
     public void SearchJob()
     {
-        if(myJob == GameHub.Job.Nothing && myGender == GameHub.Gender.Boy && myAge > 13)
+        if(myJob == null && myGender == GameHub.Gender.Boy && myAge > 13)
         {
             int RandomRange = Random.Range(1, 100);
-            GameHub.Job aJob = GameHub.Instance.GetRandomJob();
-            if(RandomRange > GameHub.Instance.myJobStatistics[(int)aJob].myJobChancePlayer)
+            Jobb aJob = GameHub.Instance.GetRandomJob();
+            if(RandomRange > aJob.myAcceptanceRate)
             {
                 myJob = aJob;
             }
@@ -99,8 +110,8 @@ public class Character
                         }
                         RandomAge = Random.Range(myAge - 2, myAge + 10);
                     }
-                    partner.CreateCharacter(RandomAge, 5, GameHub.Instance.GetRandomName(GameHub.Gender.Girl), GameHub.Job.Nothing, GameHub.Gender.Girl);
-                    partner.myJob = GameHub.Job.Nothing;
+                    partner.CreateCharacter(RandomAge, 5, GameHub.Instance.GetRandomName(GameHub.Gender.Girl), null, GameHub.Gender.Girl);
+                    partner.myJob = null;
                 }
                 AddRelation(partner, GameHub.RelationType.Wife);
                 partner.AddRelation(this, GameHub.RelationType.Wife);
@@ -110,9 +121,18 @@ public class Character
 
     public void TryForKids(int childAge)
     {
-        if(hasPartner && myGender == GameHub.Gender.Girl && myAge < 36) 
+
+        if (hasPartner && myGender == GameHub.Gender.Girl && myAge < 36) 
         {
-            if(Random.Range(1, 100) < 25)
+            float chanceOfChild = 0.0f;
+            for (int i = 0; i < GameHub.Instance.myDataScriptableObject.AgeGroups.Count; i++)
+            {
+                if (myAge > GameHub.Instance.myDataScriptableObject.AgeGroups[i].myAgeGroupLowAge && myAge < GameHub.Instance.myDataScriptableObject.AgeGroups[i].myAgeGroupTopAge)
+                {
+                    chanceOfChild = GameHub.Instance.myDataScriptableObject.AgeGroups[i].myChildChance;
+                }
+            }
+            if (chanceOfChild > Random.Range(0.0f, 100.0f))
             {
                 Character child = AddChild();
                 child.myAge = childAge;
@@ -171,7 +191,7 @@ public class Character
             }
             if(momIsDead)
             {
-                mom.CreateCharacter(momAge, 5, GameHub.Instance.GetRandomName(GameHub.Gender.Girl), GameHub.Job.Nothing, GameHub.Gender.Girl);
+                mom.CreateCharacter(momAge, 5, GameHub.Instance.GetRandomName(GameHub.Gender.Girl), null, GameHub.Gender.Girl);
                 AddRelation(mom, GameHub.RelationType.Mother);
                 mom.AddRelation(this, GameHub.RelationType.Child);
                 mom.hasPartner = true;
@@ -243,28 +263,6 @@ public class Character
         return aCharacter;
     }
 
-    public GameHub.AgeBracket GetAgeRange()
-    {
-        GameHub.AgeBracket ageBracket = GameHub.AgeBracket.NewBorn;
-        if (myAge >= 0 && myAge <= GameHub.Instance.ChildTopAge)
-        {
-            ageBracket = GameHub.AgeBracket.Child;
-        }
-        else if (myAge >= GameHub.Instance.ChildTopAge + 1 && myAge <= GameHub.Instance.YoungAdultTopAge)
-        {
-            ageBracket = GameHub.AgeBracket.YoungAdult;
-        }
-        else if (myAge >= GameHub.Instance.ChildTopAge + 1 && myAge <= GameHub.Instance.AdultTopAge)
-        {
-            ageBracket = GameHub.AgeBracket.Adult;
-        }
-        else if (myAge > 36)
-        {
-            ageBracket = GameHub.AgeBracket.Senior;
-        }
-        return ageBracket;
-    }
-
     public List<Character> GetCharacterFromRelationType(GameHub.RelationType aRelationType)
     {
         List<Character> characters = new List<Character>();
@@ -280,8 +278,8 @@ public class Character
 
     public Character AddChild()
     {
-        Character child = GameHub.Instance.CreateRandomCharacter(GameHub.AgeBracket.NewBorn);
-        child.myJob = GameHub.Job.Nothing;
+        Character child = GameHub.Instance.CreateRandomCharacter(0);
+        child.myJob = null;
         AddRelation(child, GameHub.RelationType.Child);
         child.AddRelation(this, GetParentFromGender(myGender));
         child.hasParents = true;
@@ -333,25 +331,20 @@ public class Character
 
     public bool GetIfPersonDies(int startAge, int endAge)
     {
-        float chanceLives = 1.0f;
-        List<AgeDeathIncrease> list = GameHub.Instance.GetPlayer().AIDeathRatePlan;
-        int index = 0;
-        foreach (AgeDeathIncrease adi in list)
+        float chanceOfDeath = 0.1f;
+        for (int i = 0; i < GameHub.Instance.myDataScriptableObject.AgeGroups.Count; i++)
         {
-            if (adi.Age < endAge && (index + 1) < list.Count)
+            if (endAge > GameHub.Instance.myDataScriptableObject.AgeGroups[i].myAgeGroupLowAge && endAge < GameHub.Instance.myDataScriptableObject.AgeGroups[i].myAgeGroupTopAge)
             {
-                if(list[index + 1].Age > startAge)
-                {
-                    float number = (100 - adi.ChanceIncrease) * 0.01f;
-                    float chance = Mathf.Pow(number, Mathf.Min(endAge - startAge, list[index +1].Age - adi.Age));
-                    chanceLives *= chance;
-                }
+                chanceOfDeath = GameHub.Instance.myDataScriptableObject.AgeGroups[i].myDeathChance;
             }
-            index++;
         }
-        chanceLives *= Mathf.Pow((100 - GameHub.Instance.myJobStatistics[(int)myJob].myDeathChance) * 0.01f, endAge - startAge);
-        chanceLives *= 100;
-        int randomChanceDies = Random.Range(1, 100);
-        return randomChanceDies > chanceLives;
+        float chanceDead = 1f - Mathf.Pow(1f - chanceOfDeath, endAge - startAge);
+        float random = Random.Range(0.0f, 100.0f);
+        if(chanceDead > random)
+        {
+            return true;
+        }
+        return false;
     }
 }

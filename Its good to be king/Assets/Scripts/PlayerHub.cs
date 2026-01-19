@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public struct Money
+public class Money
 {
     public int Copper;
     public int Silver;
@@ -22,25 +22,31 @@ public class PlayerHub : MonoBehaviour
     public Character myInteraction;
     public Character myHeir;
     List<AgeDeathIncrease> PlayerDeathRatePlan;
-    public List<AgeDeathIncrease> AIDeathRatePlan;
 
     private void Start()
     {
         PlayerDeathRatePlan = new List<AgeDeathIncrease>();
-        AIDeathRatePlan = new List<AgeDeathIncrease>();
         CreateDeathChances();
         CreatePlayer();
     }
 
     private void CreatePlayer()
     {
-        myCharacter = GameHub.Instance.CreateRandomCharacter(GameHub.AgeBracket.NewBorn);
-        myCharacter.myJob = GameHub.Job.Nothing;
+        myCharacter = GameHub.Instance.CreateRandomCharacter(0);
+        myCharacter.myName = MenuData.ourCharacterName;
+        myCharacter.myJob = null;
         //createSpawnFamily();
         myCharacter.myMoney.Copper = 0;
         myCharacter.myMoney.Silver = 0;
         myCharacter.myMoney.Gold = 0;
+        GameHub.Instance.LoadPreviousGame();
+        //For loop is to stop people from aging by your newly loaded age
+        foreach (Relation character in myCharacter.myRelations)
+        {
+            character.myRelation.hasBeenCheckedThisRound = true;
+        }
         gameObject.AddComponent<RelationsShips>().DrawRelations(myCharacter);
+
         UIHub.Instance.UpdateUI();
     }
 
@@ -97,7 +103,7 @@ public class PlayerHub : MonoBehaviour
     public void NextRound()
     {
         GameHub.Instance.ResetUpdateStatus();
-        GameHub.Instance.UpdateEvents();
+        //GameHub.Instance.UpdateEvents();
         CalculatePlayerDeathChance();
         GetSalary(myCharacter);
         myCharacter.UpdateCharacter();
@@ -144,7 +150,10 @@ public class PlayerHub : MonoBehaviour
                 break;
             }
         }
-        myCharacter.myChanceOfDyingEachYear += GameHub.Instance.myJobStatistics[(int)myCharacter.myJob].myDeathChance;
+        if(myCharacter.myJob != null)
+        {
+            myCharacter.myChanceOfDyingEachYear += (int)myCharacter.myJob.deathChanceIncrease;
+        }
     }
 
     private void ChangeHealth(int aHealth)
@@ -164,37 +173,7 @@ public class PlayerHub : MonoBehaviour
 
     private void GetSalary(Character character)
     {
-        int MoneyThisRound = character.mySalary;
-        while(MoneyThisRound > 0)
-        {
-            if(MoneyThisRound > 10000)
-            {
-                character.myMoney.Gold += 1;
-                MoneyThisRound -= 10000;
-            }
-            else if(MoneyThisRound >= 100)
-            {
-                character.myMoney.Silver += 1;
-                MoneyThisRound -= 100;
-            }
-            else 
-            {
-                character.myMoney.Copper += MoneyThisRound;
-                MoneyThisRound = 0;
-            }
-        }
-        
-        while(myCharacter.myMoney.Copper > 100)
-        {
-            character.myMoney.Silver += 1;
-            character.myMoney.Copper -= 100;
-        }
-        while(myCharacter.myMoney.Silver > 100)
-        {
-            character.myMoney.Gold += 1;
-            character.myMoney.Silver -= 100;
-        }
-
+        character.AddMoney(character.mySalary);
     }
 
     public void ActivateButtonEvent(int index)
@@ -217,11 +196,6 @@ public class PlayerHub : MonoBehaviour
                     FindWife();
                     break;
                 }
-            case GameHub.EventType.TryBecomeBaker:
-                {
-                    FindWife();
-                    break;
-                }
             case GameHub.EventType.Crusade:
                 {
                     break;
@@ -229,10 +203,52 @@ public class PlayerHub : MonoBehaviour
         }
     }
 
-    public void ActivateJobEvent(GameHub.Job aJob)
+    public void ActivateOtherEvent(ResultData aResult)
+    {
+        switch (aResult.myResult)
+        {
+            case GameHub.EventResult.Death:
+                {
+                    Die();
+                    break;
+                }
+            case GameHub.EventResult.Money:
+                {
+                    myCharacter.AddMoney(aResult.myMoney);
+                    break;
+                }
+            case GameHub.EventResult.Income:
+                {
+                    myCharacter.mySalary += aResult.myMoney;
+                    break;
+                }
+            case GameHub.EventResult.Land:
+                {
+
+                    break;
+                }
+            case GameHub.EventResult.Job:
+                {
+                    myCharacter.myJob = aResult.myJob;
+                    break;
+                }
+            case GameHub.EventResult.Character:
+                {
+
+                    break;
+                }
+            case GameHub.EventResult.Characteristic:
+                {
+                    myCharacter.myCharacteristics.Add(aResult.characteristic);
+                    break;
+                }
+        }
+    }
+
+    public void ActivateJobEvent(Jobb aJob)
     {
         myCharacter.myJob = aJob;
-        myCharacter.mySalary = GameHub.Instance.myJobStatistics[(int)aJob].myJobSalary;
+        myCharacter.mySalary = aJob.GetRandomSalary();
         UIHub.Instance.UpdateUI();
     }
 
@@ -243,64 +259,53 @@ public class PlayerHub : MonoBehaviour
         {
             PartnerGender = GameHub.Gender.Girl;
         }
-        Character wife = myCharacter.AddRelation(GameHub.Instance.CreateRandomCharacter(myCharacter.GetAgeRange()), GameHub.RelationType.Wife);
+        Character wife = myCharacter.AddRelation(GameHub.Instance.CreateRandomCharacter(GetRandomAgeInAgeGroupFromAge(myCharacter.myAge)), GameHub.RelationType.Wife);
         wife.myName = GameHub.Instance.GetRandomName(GameHub.Gender.Girl);
         wife.myGender = PartnerGender;
         wife.AddRelation(myCharacter, GameHub.RelationType.Wife);
         gameObject.GetComponent<RelationsShips>().AddRelationToMenu(GameHub.RelationType.Wife, wife, myCharacter);
     }
 
+    private int GetRandomAgeInAgeGroupFromAge(int age)
+    {
+        for(int i = 0; i < GameHub.Instance.myDataScriptableObject.AgeGroups.Count; i++)
+        {
+            if(age > GameHub.Instance.myDataScriptableObject.AgeGroups[i].myAgeGroupLowAge && age < GameHub.Instance.myDataScriptableObject.AgeGroups[i].myAgeGroupTopAge)
+            {
+                return (int)Random.Range(GameHub.Instance.myDataScriptableObject.AgeGroups[i].myAgeGroupLowAge, GameHub.Instance.myDataScriptableObject.AgeGroups[i].myAgeGroupTopAge);
+            }
+        }
+        return age;
+    }
+
 
     private void createSpawnFamily()
     {
-        GameHub.AgeBracket dadAgeBracket = GameHub.AgeBracket.Senior;
-        int ChanceYoungAdult = 25;
-        int ChanceAdult = 60;
         myCharacter.hasParents = true;
-        int ParentAgeChance = Random.Range(0, 100);
-        if(ParentAgeChance <= ChanceYoungAdult)
-        {
-            dadAgeBracket = GameHub.AgeBracket.YoungAdult;
-        }
-        else if(ParentAgeChance <= ChanceYoungAdult + ChanceAdult)
-        {
-            dadAgeBracket = GameHub.AgeBracket.Adult;
-        }
-        int dadAge = 0;
         int momAge = 0;
-        switch(dadAgeBracket)
-        {
-            case GameHub.AgeBracket.YoungAdult:
-                {
-                    dadAge = Random.Range(GameHub.Instance.ChildTopAge, GameHub.Instance.YoungAdultTopAge);
-                    momAge = Random.Range(GameHub.Instance.ChildTopAge, dadAge + 2);
-                    break;
-                }
-            case GameHub.AgeBracket.Adult:
-                {
-                    dadAge = Random.Range(GameHub.Instance.YoungAdultTopAge, GameHub.Instance.AdultTopAge);
-                    momAge = Random.Range(GameHub.Instance.YoungAdultTopAge, dadAge + 2);
-                    break;
-                }
-            case GameHub.AgeBracket.Senior:
-                {
-                    dadAge = Random.Range(GameHub.Instance.AdultTopAge, 65);
-                    momAge = Random.Range(GameHub.Instance.AdultTopAge, 40);
-                    break;
-                }
-        }
+        int dadAge = 0;
 
+        int momLowerAge = -10;
+        int momUpperAge = 2;
+
+        int momActualAgeInRelation = Random.Range(momLowerAge, momUpperAge);
+        dadAge = Random.Range(18, 70);
+        momAge = dadAge + momActualAgeInRelation;
+        if(momAge < 18)
+        {
+            momAge = 18;
+        }
+        else if(momAge > 48)
+        {
+            momAge = 48;
+        }
 
         int chanceFatherDies = 15;
         int ChanceMotherDies = 10;
         Character dad = new Character();
         if(Random.Range(0,100) > chanceFatherDies)
         {
-            GameHub.Job job = GameHub.Job.Monk;
-            while(job == GameHub.Job.Monk || job == GameHub.Job.Priest || job == GameHub.Job.Bishop)
-            {
-                job = GameHub.Instance.GetRandomJob();
-            }
+            Jobb job = GameHub.Instance.GetRandomJob();
             int vibe = Random.Range(1,10);
             dad.CreateCharacter(dadAge, vibe, GameHub.Instance.GetRandomName(GameHub.Gender.Boy), job, GameHub.Gender.Boy);
             myCharacter.AddRelation(dad, GameHub.RelationType.Father);
@@ -309,7 +314,7 @@ public class PlayerHub : MonoBehaviour
         if(Random.Range(0,100) > ChanceMotherDies)
         {
             int vibe = Random.Range(1, 10);
-            mom.CreateCharacter(momAge, vibe, GameHub.Instance.GetRandomName(GameHub.Gender.Girl), GameHub.Job.Nothing, GameHub.Gender.Girl);
+            mom.CreateCharacter(momAge, vibe, GameHub.Instance.GetRandomName(GameHub.Gender.Girl), null, GameHub.Gender.Girl);
             myCharacter.AddRelation(mom, GameHub.RelationType.Mother);
         }
 
@@ -322,7 +327,7 @@ public class PlayerHub : MonoBehaviour
                 SiblingAmount++;
                 int gender = Random.Range(0, 2);
                 Character sibling = new Character();
-                GameHub.Job job = GameHub.Job.Nothing;
+                Jobb job = null;
                 if(i > 12 && (GameHub.Gender)gender == GameHub.Gender.Boy) 
                 {
                     if(SiblingAmount < 2)
@@ -353,13 +358,6 @@ public class PlayerHub : MonoBehaviour
 
     private void CreateDeathChances()
     {
-        AIDeathRatePlan.Add(CreateAgeDeathIncrease(0, 3));
-        AIDeathRatePlan.Add(CreateAgeDeathIncrease(5, 1));
-        AIDeathRatePlan.Add(CreateAgeDeathIncrease(36, 3));
-        AIDeathRatePlan.Add(CreateAgeDeathIncrease(46, 5));
-        AIDeathRatePlan.Add(CreateAgeDeathIncrease(56, 10));
-
-
         PlayerDeathRatePlan.Add(CreateAgeDeathIncrease(36, 3));
         PlayerDeathRatePlan.Add(CreateAgeDeathIncrease(46, 5));
         PlayerDeathRatePlan.Add(CreateAgeDeathIncrease(56, 10));

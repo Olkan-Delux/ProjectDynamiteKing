@@ -103,7 +103,6 @@ public class UIMenu : MonoBehaviour
     }
     public virtual void Close(bool withAnimation)
     {
-        Debug.Log("close");
         if (myPivot != null)
         {
             myPivot.position = CameraPos.position;

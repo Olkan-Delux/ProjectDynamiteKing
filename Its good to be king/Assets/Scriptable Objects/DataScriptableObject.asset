@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 25b27909ad2bbe8488b02dad7fc85da2, type: 3}
+  m_Name: DataScriptableObject
+  m_EditorClassIdentifier: 
+  characteristics:
+  - myCharacteristic: 
+    myInheritanceChance: 0
+    myDevelopmentChance: 0
+  AgeGroups:
+  - myAgeGroupName: Children
+    myAgeGroupLowAge: 0
+    myAgeGroupTopAge: 0
+    myChildChance: 0
+    myDeathChance: 0
+  - myAgeGroupName: Poopsies
+    myAgeGroupLowAge: 0
+    myAgeGroupTopAge: 0
+    myChildChance: 0
+    myDeathChance: 0
+  Jobbs:
+  - myJob: Farmer Apprentice
+    myBaseLowSalary: 1
+    myBaseHighSalary: 10
+    myAcceptanceRate: 30
+    HasSequenceJob: 1
+    canGetPromoted: 1
+    MyYearsTilPromotion: 3
+    IsVisibleInJobMenu: 1
+    CanCharactersRandomlyGet: 0
+  - myJob: Farmer
+    myBaseLowSalary: 10
+    myBaseHighSalary: 30
+    myAcceptanceRate: 15
+    HasSequenceJob: 0
+    canGetPromoted: 0
+    MyYearsTilPromotion: 0
+    IsVisibleInJobMenu: 0
+    CanCharactersRandomlyGet: 0
+  - myJob: Slave Master
+    myBaseLowSalary: 100
+    myBaseHighSalary: 1000
+    myAcceptanceRate: 100
+    HasSequenceJob: 0
+    canGetPromoted: 0
+    MyYearsTilPromotion: 0
+    IsVisibleInJobMenu: 1
+    CanCharactersRandomlyGet: 0

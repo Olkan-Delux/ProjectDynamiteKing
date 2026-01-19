@@ -153,7 +153,6 @@ public class KiingdomManager
         }
         kd.myNameRegion = GameHub.Instance.GetRegion();
         king.myName = GameHub.Instance.GetRandomName(king.myGender);
-        king.myJob = GameHub.Job.King;
         kd.myOwner = king;
     }
 

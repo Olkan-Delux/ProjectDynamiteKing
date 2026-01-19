@@ -13,4 +13,5 @@ public class NameRegion
     public string myRegion;
     public List<string> MaleNames;
     public List<string> FemaleNames;
+    public List<string> LastNames;
 }

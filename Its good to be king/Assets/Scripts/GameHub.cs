@@ -3,11 +3,20 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 using UnityEditor;
+using System.Security;
+using System.Linq;
 
-public struct ButtonEvent
+public class ButtonEvent
 {
     public List<Event> myPossibleEvents;
     public List<int> ChanseOfHappeningOutof100;
+}
+
+public class JobButtonEvent
+{
+    public Event AcceptanceEvent;
+    public Event DeniedEvent;
+    public Jobb jobb;
 }
 
 public class ChanceEvent
@@ -15,8 +24,8 @@ public class ChanceEvent
     public Event myEvent;
     public List<Event> myResultEvents = new List<Event>();
     public List<int> myResultEventsIndex = new List<int>();
-    public GameHub.Job selectedJobOption;
-    public GameHub.Job DependableJobOption;
+    public Jobb selectedJobOption;
+    public Jobb DependableJobOption;
     public GameHub.RelationType selectedRelationDependable;
     public int relationAmount;
     public int Age;
@@ -30,7 +39,11 @@ public class ChanceEvent
     public bool RelationAgeDependant;
     public bool CanBeGottenAgain;
     public bool hasBeenGotten;
+    public bool IsSocialClassDependant;
+    public bool IsCharacteristicDependant;
+    public Characteristic characteristic;
     public float ChanceOfHappening;
+    public GameHub.SocialClass socialClass;
 
     public string EventTitle;
     public string EventText;
@@ -38,44 +51,44 @@ public class ChanceEvent
     public List<ResultDataRegistry> buttonResults = new List<ResultDataRegistry>();
 }
 
-public struct JobStatistics
-{
-    public int myJobChance;
-    public int myDeathChance;
-    public int myJobChancePlayer;
-    public int myJobSalary;
-}
 
 public class GameHub : MonoBehaviour
 {
+    public enum SocialClass
+    {
+        Criminal,
+        Commoner,
+        Nobel,
+        Royal
+    };
     public enum Gender
     {
         Boy,
         Girl
     };
-    public enum Job
-    {
-        Peasant,
-        Smith,
-        Fisher,
-        Baker,
-        ShoeMaker,
-        Carpenter,
-        Merchant,
-        Hunter,
-        Miner,
-        Mercenary,
-        Guard,
-        Sailor,
-        Soldier,
-        Monk,
-        Priest,
-        Bishop,
-        Knight,
-        Noblemen,
-        Nothing,
-        King,
-    };
+    //public enum Job
+    //{
+    //    Peasant,
+    //    Smith,
+    //    Fisher,
+    //    Baker,
+    //    ShoeMaker,
+    //    Carpenter,
+    //    Merchant,
+    //    Hunter,
+    //    Miner,
+    //    Mercenary,
+    //    Guard,
+    //    Sailor,
+    //    Soldier,
+    //    Monk,
+    //    Priest,
+    //    Bishop,
+    //    Knight,
+    //    Noblemen,
+    //    Nothing,
+    //    King,
+    //};
 
     public enum LandMark
     {
@@ -92,25 +105,6 @@ public class GameHub : MonoBehaviour
         Wife,
         Crusade,
         VikingRaid,
-        TryBecomePeasant,
-        TryBecomeSmith,
-        TryBecomeFisher,
-        TryBecomeBaker,
-        TryBecomeShoeMaker,
-        TryBecomeCarpenter,
-        TryBecomeMerchant,
-        TryBecomeHunter,
-        TryBecomeMiner,
-        TryBecomeMercenary,
-        TryBecomeGuard,
-        TryBecomeSailor,
-        TryBecomeSoldier,
-        TryBecomeMonk,
-        TryBecomePriest,
-        TryBecomeBishop,
-        TryBecomeKnight,
-        TryBecomeNoblemen,
-        TryBecomeKing,
         Count
     };
 
@@ -127,15 +121,6 @@ public class GameHub : MonoBehaviour
         Count
     }
 
-    public enum AgeBracket
-    {
-        NewBorn,
-        Child, 
-        YoungAdult,
-        Adult,
-        Senior
-    }
-
     public enum EventResult
     {
         Death,
@@ -143,7 +128,8 @@ public class GameHub : MonoBehaviour
         Income,
         Land,
         Job,
-        Character
+        Character,
+        Characteristic
     };
 
 
@@ -155,16 +141,20 @@ public class GameHub : MonoBehaviour
     public GameObject EventButton;
     public GameObject EventCanvas;
     public GameObject EventPanel;
-    ButtonEvent[] myButtonEvents;
+    public GameObject PauseMenu;
+    public bool isPaused = false;
+    List<ButtonEvent> myButtonEvents = new List<ButtonEvent>();
+    private List<JobButtonEvent> myJobEvents = new List<JobButtonEvent>();
     private List<ChanceEvent> myChanceEvents = new List<ChanceEvent>();
+    private List<int> myChanceIndexes = new List<int>();
     Event[] myChosenEvent;
     public int ChildTopAge;
     public int YoungAdultTopAge;
     public int AdultTopAge;
     public List<Character> allCharacters;
-    public JobStatistics[] myJobStatistics;
     private KiingdomManager myKingdomManager;
     public NameScriptableObject myNames;
+    public DataScriptableObject myDataScriptableObject;
     public List<string> myBoyNames = new List<string>();
     public List<string> myGirlNames = new List<string>();
     public EventRegistryScriptableObject myEvents;
@@ -187,12 +177,56 @@ public class GameHub : MonoBehaviour
     private void Start()
     {
         allCharacters = new List<Character>();
-        SetStatistics();
         CreateEvents();
         ReadNames();
         ChildTopAge = 12;
         YoungAdultTopAge = 24;
         AdultTopAge = 36;
+    }
+
+    public void LoadPreviousGame()
+    {
+        if (MenuData.ShouldLoad)
+        {
+            SaveData loaded = SaveSystem.Load();
+
+            myPlayer.myCharacter = loaded.playerCharacter;
+            myPlayer.myHeir = loaded.playerHeir;
+            myPlayer.myInteraction = loaded.playerInteraction;
+
+            allCharacters = loaded.allCharacters;
+
+            myHeadRegion = loaded.nameRegion;
+        }
+    }
+
+    private void Update()
+    {
+        if(Input.GetKeyDown(KeyCode.Escape))
+        {
+            isPaused = !isPaused;
+            PauseMenu.SetActive(isPaused);
+        }
+    }
+
+    public void ResumePaused()
+    {
+        PauseMenu.SetActive(false);
+        isPaused = false;
+    }
+
+    public void QuitGame()
+    {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
+    }
+
+    public void SaveGame()
+    {
+        SaveSystem.Save(GetPlayer(), this);
     }
 
     public void CreateKingdoms()
@@ -227,57 +261,77 @@ public class GameHub : MonoBehaviour
 
     public void UpdateEvents()
     {
-        for (int i = 0; i < myChanceEvents.Count; i++)
+        myChanceIndexes = myChanceIndexes.OrderBy(x => Random.value).ToList();
+        for (int i = 0; i < myChanceIndexes.Count; i++)
         {
             bool shouldActivateEvent = true;
-            if (myChanceEvents[i].CanBeGottenAgain)
+            if(myChanceEvents[myChanceIndexes[i]].IsSocialClassDependant && myChanceEvents[myChanceIndexes[i]].socialClass != myPlayer.GetPlayerCharacter().mySocialClass)
+            {
+                shouldActivateEvent = false;
+            }
+            if (myChanceEvents[myChanceIndexes[i]].CanBeGottenAgain)
             {
 
             }
-            if (myChanceEvents[i].JobDependant && myPlayer.GetPlayerCharacter().myJob != myChanceEvents[i].selectedJobOption)
+            if (myChanceEvents[myChanceIndexes[i]].JobDependant && myPlayer.GetPlayerCharacter().myJob.myJob != myChanceEvents[myChanceIndexes[i]].selectedJobOption.myJob)
             {
                 shouldActivateEvent = false;
             }
-            if (myChanceEvents[i].AgeDependant)
+            if (myChanceEvents[myChanceIndexes[i]].AgeDependant)
             {
-                if (myChanceEvents[i].myAgeRequierment == EventScriptableObject.AgeRequierment.Exact && myPlayer.GetPlayerCharacter().myAge != myChanceEvents[i].Age)
+                if (myChanceEvents[myChanceIndexes[i]].myAgeRequierment == EventScriptableObject.AgeRequierment.Exact && myPlayer.GetPlayerCharacter().myAge != myChanceEvents[myChanceIndexes[i]].Age)
                 {
                     shouldActivateEvent = false;
                 }
-                else if(myChanceEvents[i].myAgeRequierment == EventScriptableObject.AgeRequierment.Below && myPlayer.GetPlayerCharacter().myAge > myChanceEvents[i].Age)
+                else if(myChanceEvents[myChanceIndexes[i]].myAgeRequierment == EventScriptableObject.AgeRequierment.Below && myPlayer.GetPlayerCharacter().myAge > myChanceEvents[myChanceIndexes[i]].Age)
                 {
                     shouldActivateEvent = false;
                 }
-                else if(myChanceEvents[i].myAgeRequierment == EventScriptableObject.AgeRequierment.Above && myPlayer.GetPlayerCharacter().myAge < myChanceEvents[i].Age)
+                else if(myChanceEvents[myChanceIndexes[i]].myAgeRequierment == EventScriptableObject.AgeRequierment.Above && myPlayer.GetPlayerCharacter().myAge < myChanceEvents[myChanceIndexes[i]].Age)
                 {
                     shouldActivateEvent = false;
                 }
             }
-            if(myChanceEvents[i].ChanceOfHappening < Random.Range(0, 100))
+            if (myChanceEvents[myChanceIndexes[i]].IsCharacteristicDependant)
+            {
+                bool hasCharacteristic = false;
+                for(int p = 0; p < myPlayer.GetPlayerCharacter().myCharacteristics.Count; p++)
+                {
+                    if(myChanceEvents[myChanceIndexes[i]].characteristic.myCharacteristic == myPlayer.GetPlayerCharacter().myCharacteristics[p].myCharacteristic)
+                    {
+                        hasCharacteristic = true;
+                    }
+                }
+                if(hasCharacteristic == false)
+                {
+                    shouldActivateEvent = false;
+                }
+            }
+            if (myChanceEvents[myChanceIndexes[i]].ChanceOfHappening < Random.Range(0, 100))
             {
                 shouldActivateEvent = false;
             }
-            if(myChanceEvents[i].DependableCharacterFlag)
+            if(myChanceEvents[myChanceIndexes[i]].DependableCharacterFlag)
             {
-                Character selectedCharacter = myPlayer.GetPlayerCharacter().GetCharacterFromRelationType(myChanceEvents[i].selectedRelationDependable)[0];
+                Character selectedCharacter = myPlayer.GetPlayerCharacter().GetCharacterFromRelationType(myChanceEvents[myChanceIndexes[i]].selectedRelationDependable)[0];
                 if(selectedCharacter != null)
                 {
-                    if(myChanceEvents[i].RelationAgeDependant)
+                    if(myChanceEvents[myChanceIndexes[i]].RelationAgeDependant)
                     {
-                        if (myChanceEvents[i].myDependableAgeRequierment == EventScriptableObject.AgeRequierment.Exact && selectedCharacter.myAge != myChanceEvents[i].DependableCharacterAge)
+                        if (myChanceEvents[myChanceIndexes[i]].myDependableAgeRequierment == EventScriptableObject.AgeRequierment.Exact && selectedCharacter.myAge != myChanceEvents[myChanceIndexes[i]].DependableCharacterAge)
                         {
                             shouldActivateEvent = false;
                         }
-                        else if (myChanceEvents[i].myDependableAgeRequierment == EventScriptableObject.AgeRequierment.Below && selectedCharacter.myAge > myChanceEvents[i].DependableCharacterAge)
+                        else if (myChanceEvents[myChanceIndexes[i]].myDependableAgeRequierment == EventScriptableObject.AgeRequierment.Below && selectedCharacter.myAge > myChanceEvents[myChanceIndexes[i]].DependableCharacterAge)
                         {
                             shouldActivateEvent = false;
                         }
-                        else if (myChanceEvents[i].myDependableAgeRequierment == EventScriptableObject.AgeRequierment.Above && selectedCharacter.myAge < myChanceEvents[i].DependableCharacterAge)
+                        else if (myChanceEvents[myChanceIndexes[i]].myDependableAgeRequierment == EventScriptableObject.AgeRequierment.Above && selectedCharacter.myAge < myChanceEvents[myChanceIndexes[i]].DependableCharacterAge)
                         {
                             shouldActivateEvent = false;
                         }
                     }
-                    if(selectedCharacter.myJob != myChanceEvents[i].DependableJobOption)
+                    if(selectedCharacter.myJob.myJob != myChanceEvents[myChanceIndexes[i]].DependableJobOption.myJob)
                     {
                         shouldActivateEvent = false;
                     }
@@ -289,8 +343,9 @@ public class GameHub : MonoBehaviour
             }
             if (shouldActivateEvent)
             {
-                myChanceEvents[i].myEvent.Activate();
-                break;
+                myChanceEvents[myChanceIndexes[i]].myEvent.Activate();
+                //myChanceEvents = myChanceEvents.OrderBy(x => Random.value).ToList();
+                return;
             }
         }
     }
@@ -325,12 +380,10 @@ public class GameHub : MonoBehaviour
     public void CreateEvents()
     {
 
-
-
-        myButtonEvents = new ButtonEvent[(int)EventType.Count];
         myChosenEvent = new Event[(int)EventType.Count];
-        for(int i = 0; i < myButtonEvents.Length; i++)
+        for(int i = 0; i < (int)EventType.Count; i++)
         {
+            myButtonEvents.Add(new ButtonEvent());
             myButtonEvents[i].ChanseOfHappeningOutof100 = new List<int>();
             myButtonEvents[i].myPossibleEvents = new List<Event>();
         }
@@ -346,10 +399,9 @@ public class GameHub : MonoBehaviour
             {
                 if (myEvents.Events[i].HasSecondEvent[j])
                 {
-                    Event chanceResultEvent = factory.CreateEvent(myEvents.Events[i].buttonResultEventTitle[i], myEvents.Events[i].buttonResultEventText[i]);
+                    Event chanceResultEvent = factory.CreateEvent(myEvents.Events[i].buttonResultEventTitle[j], myEvents.Events[i].buttonResultEventText[j]);
                     chanceResultEvent.SetCanvasAndButton(EventCanvas, EventButton, EventPanel);
                     myChanceEvents[i].myResultEvents.Add(chanceResultEvent);
-                    //aChanceEvent.myResultEventsIndex.Add(j);
                     chanceResultEvent.AddEventDecision(myEvents.Events[i].buttonResultButtonText[j], () =>
                     {
                         chanceResultEvent.DeActivate();
@@ -359,7 +411,6 @@ public class GameHub : MonoBehaviour
                 int currentJ = j;
                 chanceEvent.AddEventDecision(myEvents.Events[i].buttonTexts[j], () => {
                     myPlayer.ActivateEvent(EventType.Crusade);
-                    //myChanceEvents[currentI].myResultEvents[currentJ].Activate();
                     if(myEvents.Events[currentI].HasSecondEvent[currentJ])
                     {
                         myChanceEvents[currentI].myResultEvents[currentJ].Activate();
@@ -388,11 +439,15 @@ public class GameHub : MonoBehaviour
             aChanceEvent.buttonResults = myEvents.Events[i].buttonResults;
             aChanceEvent.myAgeRequierment = myEvents.Events[i].myAgeRequierment;
             aChanceEvent.myDependableAgeRequierment = myEvents.Events[i].myDependableAgeRequierment;
-
-            //myButtonEvents[(int)EventType.Crusade].myPossibleEvents.Add(chanceEvent);
-            //myButtonEvents[(int)EventType.Wife].ChanseOfHappeningOutof100.Add(50);
+            aChanceEvent.socialClass = myEvents.Events[i].socialClass;
+            aChanceEvent.IsSocialClassDependant = myEvents.Events[i].IsSocialClassDependant;
+            aChanceEvent.IsCharacteristicDependant = myEvents.Events[i].IsCharacteristicDependant;
+            aChanceEvent.characteristic = myEvents.Events[i].myChosenCharacteristic;
         }
-
+        for (int i = 0; i < myEvents.Events.Count; i++)
+        {
+            myChanceIndexes.Add(i);
+        }
 
         Event FindWifevent = factory.CreateEvent("Yo Wife up this bitch if you finna risk it", "You can wife a nice lady on the street with some bomb as coochie baby, LESS GOOOOOOO");
         FindWifevent.AddEventDecision("Wife that bitch", () => { myPlayer.ActivateEvent(EventType.Wife);
@@ -425,23 +480,25 @@ public class GameHub : MonoBehaviour
         NotFoundJobEvent.AddEventDecision("Damn", ()=> { NotFoundJobEvent.DeActivate(); });
         NotFoundJobEvent.SetCanvasAndButton(EventCanvas, EventButton, EventPanel);
 
-        for(int i = 0; i < (int)Job.King; i++)
+        for(int i = 0; i < myDataScriptableObject.Jobbs.Count; i++)
         {
-            if (i != (int)Job.Knight || i != (int)Job.Noblemen || i != (int)Job.King || i != (int)Job.Nothing || i != (int)Job.Bishop)
+            myJobEvents.Add(new JobButtonEvent());
+            if (myDataScriptableObject.Jobbs[i].IsVisibleInJobMenu)
             {
                 int index = i;
-                Event jobEvent = factory.CreateEvent("They wanted you, Congrats!", "There was a spot open for you as a " + System.Enum.GetName(typeof(Job), (Job)i));
+                Event jobEvent = factory.CreateEvent("They wanted you, Congrats!", "There was a spot open for you as a " + myDataScriptableObject.Jobbs[index]);
                 jobEvent.AddEventDecision("Ill take it!", () =>
                 {
-                    myPlayer.ActivateJobEvent((Job)index);
+                    myPlayer.ActivateJobEvent(myDataScriptableObject.Jobbs[index]);
                     jobEvent.DeActivate();
                 });
                 jobEvent.AddEventDecision("I might find something better", () => { jobEvent.DeActivate(); });
                 jobEvent.SetCanvasAndButton(EventCanvas, EventButton, EventPanel);
-                myButtonEvents[(int)GetEventFromJob((Job)i)].myPossibleEvents.Add(jobEvent);
-                myButtonEvents[(int)GetEventFromJob((Job)i)].ChanseOfHappeningOutof100.Add(myJobStatistics[i].myJobChancePlayer);
-                myButtonEvents[(int)GetEventFromJob((Job)i)].myPossibleEvents.Add(NotFoundJobEvent);
-                myButtonEvents[(int)GetEventFromJob((Job)i)].ChanseOfHappeningOutof100.Add(100 - myJobStatistics[i].myJobChancePlayer);
+                //myJobEvents.Add(new JobButtonEvent());
+                myJobEvents[i].AcceptanceEvent = jobEvent;
+                myJobEvents[i].DeniedEvent = NotFoundJobEvent;
+                myJobEvents[i].jobb = myDataScriptableObject.Jobbs[i];
+
             }
         }
 
@@ -457,6 +514,20 @@ public class GameHub : MonoBehaviour
     public void ActivateEvent(int index)
     {
         CalculateEventChanse(index).Activate();
+        UIHub.Instance.CloseMenus();
+    }
+
+    public void ActivateJobEvent(int index)
+    {
+        int Number = Random.Range(0, 100);
+        if(Number < myJobEvents[index].jobb.myAcceptanceRate)
+        {
+            myJobEvents[index].AcceptanceEvent.Activate();
+        }
+        else
+        {
+            myJobEvents[index].DeniedEvent.Activate();
+        }
         UIHub.Instance.CloseMenus();
     }
 
@@ -480,238 +551,110 @@ public class GameHub : MonoBehaviour
         return myChosenEvent[index];
     }
 
-    public Character CreateRandomCharacter(AgeBracket anAge)
+    public Character CreateRandomCharacter(int age)
     {
         int randomGender = Random.Range(0, 1);
-        int age = GetRandomAgeFromAgeBracket(anAge);
-        Job job = GetRandomJob();
+        Jobb job = GetRandomJob();
         Character randomCharacter = new Character();
         randomCharacter.CreateCharacter(age, 4, GetRandomName((Gender)randomGender), job, (Gender)randomGender);
         return randomCharacter;
     }
 
-    public int GetRandomAgeFromAgeBracket(AgeBracket anAge)
+    public Jobb GetRandomJob()
     {
-        int low = 0;
-        int high = 0;
-        switch(anAge)
+        float jobChance = Random.Range(1, 100);
+        for(int i = 0; i < myDataScriptableObject.Jobbs.Count; i++)
         {
-            case AgeBracket.Child:
-                {
-                    low = 1;
-                    high = ChildTopAge;
-                    break;
-                }
-            case AgeBracket.YoungAdult:
-                {
-                    low = ChildTopAge + 1;
-                    high = YoungAdultTopAge;
-                    break;
-                }
-            case AgeBracket.Adult:
-                {
-                    low = YoungAdultTopAge + 1;
-                    high = AdultTopAge;
-                    break;
-                }
-            case AgeBracket.Senior:
-                {
-                    low = AdultTopAge + 1;
-                    high = 72;
-                    break;
-                }
-        }
-        return Random.Range(low, high);
-    }
-
-    private void SetStatistics()
-    {
-        myJobStatistics = new JobStatistics[(int)Job.Nothing + 1];
-
-        myJobStatistics[(int)Job.Peasant].myJobChance = 15;
-        myJobStatistics[(int)Job.Smith].myJobChance = 7;
-        myJobStatistics[(int)Job.Fisher].myJobChance = 10;
-        myJobStatistics[(int)Job.Baker].myJobChance = 2;
-        myJobStatistics[(int)Job.ShoeMaker].myJobChance = 7;
-        myJobStatistics[(int)Job.Carpenter].myJobChance = 7;
-        myJobStatistics[(int)Job.Merchant].myJobChance = 7;
-        myJobStatistics[(int)Job.Hunter].myJobChance = 7;
-        myJobStatistics[(int)Job.Miner].myJobChance = 7;
-        myJobStatistics[(int)Job.Mercenary].myJobChance = 7;
-        myJobStatistics[(int)Job.Guard].myJobChance = 2;
-        myJobStatistics[(int)Job.Sailor].myJobChance = 2;
-        myJobStatistics[(int)Job.Soldier].myJobChance = 5;
-        myJobStatistics[(int)Job.Monk].myJobChance = 3;
-        myJobStatistics[(int)Job.Priest].myJobChance = 2;
-        myJobStatistics[(int)Job.Bishop].myJobChance = 1;
-        myJobStatistics[(int)Job.Knight].myJobChance = 1;
-        myJobStatistics[(int)Job.Noblemen].myJobChance = 1;
-        myJobStatistics[(int)Job.Nothing].myJobChance = 7;
-
-
-
-        myJobStatistics[(int)Job.Peasant].myDeathChance = 0;
-        myJobStatistics[(int)Job.Smith].myDeathChance = 1;
-        myJobStatistics[(int)Job.Fisher].myDeathChance = 2;
-        myJobStatistics[(int)Job.Baker].myDeathChance = 0;
-        myJobStatistics[(int)Job.ShoeMaker].myDeathChance = 0;
-        myJobStatistics[(int)Job.Carpenter].myDeathChance = 0;
-        myJobStatistics[(int)Job.Merchant].myDeathChance = 2;
-        myJobStatistics[(int)Job.Hunter].myDeathChance = 2;
-        myJobStatistics[(int)Job.Miner].myDeathChance = 3;
-        myJobStatistics[(int)Job.Mercenary].myDeathChance = 0;
-        myJobStatistics[(int)Job.Guard].myDeathChance = 3;
-        myJobStatistics[(int)Job.Sailor].myDeathChance = 2;
-        myJobStatistics[(int)Job.Soldier].myDeathChance = 0;
-        myJobStatistics[(int)Job.Monk].myDeathChance = 0;
-        myJobStatistics[(int)Job.Priest].myDeathChance = 0;
-        myJobStatistics[(int)Job.Bishop].myDeathChance = 0;
-        myJobStatistics[(int)Job.Knight].myDeathChance = 0;
-        myJobStatistics[(int)Job.Noblemen].myDeathChance = 0;
-        myJobStatistics[(int)Job.Nothing].myDeathChance = 0;
-
-
-
-        myJobStatistics[(int)Job.Peasant].myJobChancePlayer = 50;
-        myJobStatistics[(int)Job.Smith].myJobChancePlayer = 20;
-        myJobStatistics[(int)Job.Fisher].myJobChancePlayer = 20;
-        myJobStatistics[(int)Job.Baker].myJobChancePlayer = 10;
-        myJobStatistics[(int)Job.ShoeMaker].myJobChancePlayer = 30;
-        myJobStatistics[(int)Job.Carpenter].myJobChancePlayer = 20;
-        myJobStatistics[(int)Job.Merchant].myJobChancePlayer = 10;
-        myJobStatistics[(int)Job.Hunter].myJobChancePlayer = 30;
-        myJobStatistics[(int)Job.Miner].myJobChancePlayer = 50;
-        myJobStatistics[(int)Job.Mercenary].myJobChancePlayer = 20;
-        myJobStatistics[(int)Job.Guard].myJobChancePlayer = 10;
-        myJobStatistics[(int)Job.Sailor].myJobChancePlayer = 10;
-        myJobStatistics[(int)Job.Soldier].myJobChancePlayer = 50;
-        myJobStatistics[(int)Job.Monk].myJobChancePlayer = 100;
-        myJobStatistics[(int)Job.Priest].myJobChancePlayer = 10;
-        myJobStatistics[(int)Job.Bishop].myJobChancePlayer = 3;
-        myJobStatistics[(int)Job.Knight].myJobChancePlayer = 0;
-        myJobStatistics[(int)Job.Noblemen].myJobChancePlayer = 0;
-        myJobStatistics[(int)Job.Nothing].myJobChancePlayer = 0;
-
-
-
-        myJobStatistics[(int)Job.Peasant].myJobSalary = 20;
-        myJobStatistics[(int)Job.Smith].myJobSalary = 30;
-        myJobStatistics[(int)Job.Fisher].myJobSalary = 30;
-        myJobStatistics[(int)Job.Baker].myJobSalary = 50;
-        myJobStatistics[(int)Job.ShoeMaker].myJobSalary = 20;
-        myJobStatistics[(int)Job.Carpenter].myJobSalary = 30;
-        myJobStatistics[(int)Job.Merchant].myJobSalary = 50;
-        myJobStatistics[(int)Job.Hunter].myJobSalary = 20;
-        myJobStatistics[(int)Job.Miner].myJobSalary = 20;
-        myJobStatistics[(int)Job.Mercenary].myJobSalary = 50;
-        myJobStatistics[(int)Job.Guard].myJobSalary = 100;
-        myJobStatistics[(int)Job.Sailor].myJobSalary = 40;
-        myJobStatistics[(int)Job.Soldier].myJobSalary = 20;
-        myJobStatistics[(int)Job.Monk].myJobSalary = 0;
-        myJobStatistics[(int)Job.Priest].myJobSalary = 0;
-        myJobStatistics[(int)Job.Bishop].myJobSalary = 0;
-        myJobStatistics[(int)Job.Knight].myJobSalary = 0;
-        myJobStatistics[(int)Job.Noblemen].myJobSalary = 0;
-        myJobStatistics[(int)Job.Nothing].myJobSalary = 0;
-    }
-
-    public Job GetRandomJob()
-    {
-        int jobChance = Random.Range(1, 100);
-        int thing = 0;
-        for(int i = 0; i < myJobStatistics.Length; i++)
-        {
-            thing += myJobStatistics[i].myJobChance;
-            if(jobChance < thing)
+            if(jobChance < myDataScriptableObject.Jobbs[i].myAcceptanceRate && myDataScriptableObject.Jobbs[i].CanCharactersRandomlyGet)
             {
-                return (Job)myJobStatistics[i].myJobChance;
+                return myDataScriptableObject.Jobbs[i];
             }
         }
-        return Job.Nothing;
+        return null;
     }
 
-    public EventType GetEventFromJob(Job aJob)
-    {
-        switch(aJob)
-        {
-            case GameHub.Job.Baker:
-                {
-                    return EventType.TryBecomeBaker;
-                }
-            case GameHub.Job.Bishop:
-                {
-                    return EventType.TryBecomeBishop;
-                }
-            case GameHub.Job.Carpenter:
-                {
-                    return EventType.TryBecomeCarpenter;
-                }
-            case GameHub.Job.Fisher:
-                {
-                    return EventType.TryBecomeFisher;
-                }
-            case GameHub.Job.Guard:
-                {
-                    return EventType.TryBecomeGuard;
-                }
-            case GameHub.Job.Hunter:
-                {
-                    return EventType.TryBecomeHunter;
-                }
-            case GameHub.Job.King:
-                {
-                    return EventType.TryBecomeKing;
-                }
-            case GameHub.Job.Knight:
-                {
-                    return EventType.TryBecomeKnight;
-                }
-            case GameHub.Job.Mercenary:
-                {
-                    return EventType.TryBecomeMercenary;
-                }
-            case GameHub.Job.Merchant:
-                {
-                    return EventType.TryBecomeMerchant;
-                }
-            case GameHub.Job.Miner:
-                {
-                    return EventType.TryBecomeBaker;
-                }
-            case GameHub.Job.Monk:
-                {
-                    return EventType.TryBecomeMonk;
-                }
-            case GameHub.Job.Noblemen:
-                {
-                    return EventType.TryBecomeNoblemen;
-                }
-            case GameHub.Job.Peasant:
-                {
-                    return EventType.TryBecomePeasant;
-                }
-            case GameHub.Job.Priest:
-                {
-                    return EventType.TryBecomePriest;
-                }
-            case GameHub.Job.Sailor:
-                {
-                    return EventType.TryBecomeSailor;
-                }
-            case GameHub.Job.ShoeMaker:
-                {
-                    return EventType.TryBecomeShoeMaker;
-                }
-            case GameHub.Job.Smith:
-                {
-                    return EventType.TryBecomeSmith;
-                }
-            case GameHub.Job.Soldier:
-                {
-                    return EventType.TryBecomeSoldier;
-                }
-        }
-        return EventType.TryBecomeBaker;
-    }
+    //public EventType GetEventFromJob(Job aJob)
+    //{
+    //    switch(aJob)
+    //    {
+    //        case GameHub.Job.Baker:
+    //            {
+    //                return EventType.TryBecomeBaker;
+    //            }
+    //        case GameHub.Job.Bishop:
+    //            {
+    //                return EventType.TryBecomeBishop;
+    //            }
+    //        case GameHub.Job.Carpenter:
+    //            {
+    //                return EventType.TryBecomeCarpenter;
+    //            }
+    //        case GameHub.Job.Fisher:
+    //            {
+    //                return EventType.TryBecomeFisher;
+    //            }
+    //        case GameHub.Job.Guard:
+    //            {
+    //                return EventType.TryBecomeGuard;
+    //            }
+    //        case GameHub.Job.Hunter:
+    //            {
+    //                return EventType.TryBecomeHunter;
+    //            }
+    //        case GameHub.Job.King:
+    //            {
+    //                return EventType.TryBecomeKing;
+    //            }
+    //        case GameHub.Job.Knight:
+    //            {
+    //                return EventType.TryBecomeKnight;
+    //            }
+    //        case GameHub.Job.Mercenary:
+    //            {
+    //                return EventType.TryBecomeMercenary;
+    //            }
+    //        case GameHub.Job.Merchant:
+    //            {
+    //                return EventType.TryBecomeMerchant;
+    //            }
+    //        case GameHub.Job.Miner:
+    //            {
+    //                return EventType.TryBecomeBaker;
+    //            }
+    //        case GameHub.Job.Monk:
+    //            {
+    //                return EventType.TryBecomeMonk;
+    //            }
+    //        case GameHub.Job.Noblemen:
+    //            {
+    //                return EventType.TryBecomeNoblemen;
+    //            }
+    //        case GameHub.Job.Peasant:
+    //            {
+    //                return EventType.TryBecomePeasant;
+    //            }
+    //        case GameHub.Job.Priest:
+    //            {
+    //                return EventType.TryBecomePriest;
+    //            }
+    //        case GameHub.Job.Sailor:
+    //            {
+    //                return EventType.TryBecomeSailor;
+    //            }
+    //        case GameHub.Job.ShoeMaker:
+    //            {
+    //                return EventType.TryBecomeShoeMaker;
+    //            }
+    //        case GameHub.Job.Smith:
+    //            {
+    //                return EventType.TryBecomeSmith;
+    //            }
+    //        case GameHub.Job.Soldier:
+    //            {
+    //                return EventType.TryBecomeSoldier;
+    //            }
+    //    }
+    //    return EventType.TryBecomeBaker;
+    //}
 
 }

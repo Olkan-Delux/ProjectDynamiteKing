@@ -96,7 +96,12 @@ public class UIHub : MonoBehaviour
         age.SetText("Age : " + playerCharacter.myAge);
         Money.SetText("G : " + playerCharacter.myMoney.Gold + ", S : " + playerCharacter.myMoney.Silver + ", C : " + playerCharacter.myMoney.Copper);
         Name.SetText(playerCharacter.myName);
-        Job.SetText(System.Enum.GetName(typeof(GameHub.Job), playerCharacter.myJob));
+        string jobText = "";
+        if(playerCharacter.myJob != null)
+        {
+            jobText = playerCharacter.myJob.myJob;
+        }
+        Job.SetText(jobText);
     }
 
     public void CloseMenus()
@@ -213,16 +218,16 @@ public class UIHub : MonoBehaviour
 
         {
             DynamicMenu jobMenu = myMenus[(int)Menus.JobMenu].GetComponent<DynamicMenu>();
-            for (int i = 0; i < (int)GameHub.Job.King; i++)
+            for (int i = 0; i < GameHub.Instance.myDataScriptableObject.Jobbs.Count; i++)
             {
-                if(i != (int)GameHub.Job.Knight  || i != (int)GameHub.Job.Noblemen || i != (int)GameHub.Job.King || i != (int)GameHub.Job.Nothing || i !=(int)GameHub.Job.Bishop)
+                if (GameHub.Instance.myDataScriptableObject.Jobbs[i].IsVisibleInJobMenu)
                 {
                     int index = i;
                     UnityEngine.UI.Button.ButtonClickedEvent clickEvent = new UnityEngine.UI.Button.ButtonClickedEvent();
                     clickEvent.AddListener(() => {
-                        GameHub.Instance.ActivateEvent((int)GameHub.Instance.GetEventFromJob((GameHub.Job)index));
+                        GameHub.Instance.ActivateJobEvent(index);
                     });
-                    jobMenu.AddButton(clickEvent, System.Enum.GetName(typeof(GameHub.Job), (GameHub.Job)i), i);
+                    jobMenu.AddButton(clickEvent, GameHub.Instance.myDataScriptableObject.Jobbs[index].myJob, index);
                 }
             }
 
@@ -231,90 +236,90 @@ public class UIHub : MonoBehaviour
 
     }
 
-    public Menus GetMenuFromJob(GameHub.Job aJob)
-    {
-        switch(aJob)
-        {
-            case GameHub.Job.Baker:
-                {
-                    return Menus.Baker;
-                }
-            case GameHub.Job.Bishop:
-                {
-                    return Menus.Bishop;
-                }
-            case GameHub.Job.Carpenter:
-                {
-                    return Menus.Carpenter;
-                }
-            case GameHub.Job.Fisher:
-                {
-                    return Menus.Fisher;
-                }
-            case GameHub.Job.Guard:
-                {
-                    return Menus.Guard;
-                }
-            case GameHub.Job.Hunter:
-                {
-                    return Menus.Hunter;
-                }
-            case GameHub.Job.King:
-                {
-                    return Menus.King;
-                }
-            case GameHub.Job.Knight:
-                {
-                    return Menus.Knight;
-                }
-            case GameHub.Job.Mercenary:
-                {
-                    return Menus.Mercenary;
-                }
-            case GameHub.Job.Merchant:
-                {
-                    return Menus.Merchant;
-                }
-            case GameHub.Job.Miner:
-                {
-                    return Menus.Miner;
-                }
-            case GameHub.Job.Monk:
-                {
-                    return Menus.Monk;
-                }
-            case GameHub.Job.Noblemen:
-                {
-                    return Menus.Noblemen;
-                }
-            case GameHub.Job.Peasant:
-                {
-                    return Menus.Peasant;
-                }
-            case GameHub.Job.Priest:
-                {
-                    return Menus.Priest;
-                }
-            case GameHub.Job.Sailor:
-                {
-                    return Menus.Sailor;
-                }
-            case GameHub.Job.ShoeMaker:
-                {
-                    return Menus.ShoeMaker;
-                }
-            case GameHub.Job.Smith:
-                {
-                    return Menus.Smith;
-                }
-            case GameHub.Job.Soldier:
-                {
-                    return Menus.Soldier;
-                }
-        }
+    //public Menus GetMenuFromJob(GameHub.Job aJob)
+    //{
+    //    switch(aJob)
+    //    {
+    //        case GameHub.Job.Baker:
+    //            {
+    //                return Menus.Baker;
+    //            }
+    //        case GameHub.Job.Bishop:
+    //            {
+    //                return Menus.Bishop;
+    //            }
+    //        case GameHub.Job.Carpenter:
+    //            {
+    //                return Menus.Carpenter;
+    //            }
+    //        case GameHub.Job.Fisher:
+    //            {
+    //                return Menus.Fisher;
+    //            }
+    //        case GameHub.Job.Guard:
+    //            {
+    //                return Menus.Guard;
+    //            }
+    //        case GameHub.Job.Hunter:
+    //            {
+    //                return Menus.Hunter;
+    //            }
+    //        case GameHub.Job.King:
+    //            {
+    //                return Menus.King;
+    //            }
+    //        case GameHub.Job.Knight:
+    //            {
+    //                return Menus.Knight;
+    //            }
+    //        case GameHub.Job.Mercenary:
+    //            {
+    //                return Menus.Mercenary;
+    //            }
+    //        case GameHub.Job.Merchant:
+    //            {
+    //                return Menus.Merchant;
+    //            }
+    //        case GameHub.Job.Miner:
+    //            {
+    //                return Menus.Miner;
+    //            }
+    //        case GameHub.Job.Monk:
+    //            {
+    //                return Menus.Monk;
+    //            }
+    //        case GameHub.Job.Noblemen:
+    //            {
+    //                return Menus.Noblemen;
+    //            }
+    //        case GameHub.Job.Peasant:
+    //            {
+    //                return Menus.Peasant;
+    //            }
+    //        case GameHub.Job.Priest:
+    //            {
+    //                return Menus.Priest;
+    //            }
+    //        case GameHub.Job.Sailor:
+    //            {
+    //                return Menus.Sailor;
+    //            }
+    //        case GameHub.Job.ShoeMaker:
+    //            {
+    //                return Menus.ShoeMaker;
+    //            }
+    //        case GameHub.Job.Smith:
+    //            {
+    //                return Menus.Smith;
+    //            }
+    //        case GameHub.Job.Soldier:
+    //            {
+    //                return Menus.Soldier;
+    //            }
+    //    }
 
-        return Menus.War;
-    }
+    //    return Menus.War;
+    //}
 
     public Menus GetMenuFromRelationType(GameHub.RelationType aRelationType)
     {

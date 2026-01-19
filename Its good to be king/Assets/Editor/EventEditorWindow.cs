@@ -9,11 +9,13 @@ public class EventEditorWindow : EditorWindow
 {
     private const string OriginalAssetPath = "Assets/Scriptable Objects/EventScriptableObject.asset";
     private const string RegistryAssetPath = "Assets/Scriptable Objects/EventDataRegistry.asset";
+    private const string DataAssetPath = "Assets/Scriptable Objects/DataScriptableObject.asset";
     private string assetPath = "";
     EventScriptableObject myAsset;
     EventRegistryScriptableObject myAssetRegistry;
-    public GameHub.Job selectedJobOption = GameHub.Job.Peasant;
-    public GameHub.Job DependableJobOption = GameHub.Job.Peasant;
+    DataScriptableObject myDataScriptableObject;
+    //public GameHub.Job selectedJobOption = GameHub.Job.Peasant;
+    //public GameHub.Job DependableJobOption = GameHub.Job.Peasant;
     public GameHub.RelationType selectedRelationOption = GameHub.RelationType.Stranger;
     public GameHub.RelationType selectedRelationDependable = GameHub.RelationType.Stranger;
     public int relationAmount = 1;
@@ -27,7 +29,17 @@ public class EventEditorWindow : EditorWindow
     public bool RelationJobDependant = false;
     public bool RelationAgeDependant = false;
     public bool CanBeGottenAgain = false;
+    public bool IsSocialClassDependant = true;
+    public bool IsCharacteristicDependant = false;
+    public Characteristic myChosenCharacteristic = null;
+    public int mySelectedCharacteristic = 0;
+    public Jobb myChosenJobb = null;
+    public Jobb myDependableChosenJobb = null;
+    public int myDependableSelectedJob = 0;
+    public int mySelectedJobb = 0;
+
     public float ChanceOfHappening = 0.0f;
+    public GameHub.SocialClass socialClass = GameHub.SocialClass.Commoner;
 
     public string EventTitle = "";
     public string EventText = "";
@@ -45,6 +57,19 @@ public class EventEditorWindow : EditorWindow
     public static void ShowWindow()
     {
         GetWindow<EventEditorWindow>("Event Editor Window");
+    }
+
+    private void OnEnable()
+    {
+        myDataScriptableObject = AssetDatabase.LoadAssetAtPath<DataScriptableObject>(DataAssetPath);
+        if (myDataScriptableObject != null)
+        {
+            Debug.Log("Loaded: " + myDataScriptableObject.name);
+        }
+        else
+        {
+            Debug.LogError("Could not load ScriptableObject at path!");
+        }
     }
 
     void OnGUI()
@@ -75,10 +100,27 @@ public class EventEditorWindow : EditorWindow
         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
         EditorGUILayout.LabelField("Event Dependables");
         EditorGUILayout.BeginHorizontal();
+        IsSocialClassDependant = EditorGUILayout.Toggle("Social Class Dependant:", IsSocialClassDependant);
+        if (IsSocialClassDependant)
+        {
+            socialClass = (GameHub.SocialClass)EditorGUILayout.EnumPopup("Social Class:", socialClass);
+        }
+        EditorGUILayout.EndHorizontal();
+        EditorGUILayout.BeginHorizontal();
         JobDependant = EditorGUILayout.Toggle("Job Dependant:", JobDependant);
         if (JobDependant)
         {
-            selectedJobOption = (GameHub.Job)EditorGUILayout.EnumPopup("Job Dropdown:", selectedJobOption);
+            if (myDataScriptableObject.Jobbs.Count > 0)
+            {
+                string[] jobs = myDataScriptableObject.Jobbs.ConvertAll(i => i.myJob).ToArray();
+                mySelectedJobb = EditorGUILayout.Popup(mySelectedJobb, jobs);
+                myChosenJobb = myDataScriptableObject.Jobbs[mySelectedJobb];
+            }
+            else
+            {
+                EditorGUILayout.LabelField("There are no Jobs currently. Please check the variable editor");
+            }
+            //selectedJobOption = (GameHub.Job)EditorGUILayout.EnumPopup("Job Dropdown:", selectedJobOption);
         }
         EditorGUILayout.EndHorizontal();
         EditorGUILayout.BeginHorizontal();
@@ -87,6 +129,22 @@ public class EventEditorWindow : EditorWindow
         {
             Age = EditorGUILayout.IntSlider("Age:", Age, 0, 100);
             myAgeRequierment = (EventScriptableObject.AgeRequierment)EditorGUILayout.EnumPopup("Age Requierment:", myAgeRequierment);
+        }
+        EditorGUILayout.EndHorizontal();
+        EditorGUILayout.BeginHorizontal();
+        IsCharacteristicDependant = EditorGUILayout.Toggle("Characteristic Dependant:", IsCharacteristicDependant);
+        if (IsCharacteristicDependant)
+        {
+            if(myDataScriptableObject.characteristics.Count > 0)
+            {
+                string[] characteristics = myDataScriptableObject.characteristics.ConvertAll(i => i.myCharacteristic).ToArray();
+                mySelectedCharacteristic = EditorGUILayout.Popup(mySelectedCharacteristic, characteristics);
+                myChosenCharacteristic = myDataScriptableObject.characteristics[mySelectedCharacteristic];
+            }
+            else
+            {
+                EditorGUILayout.LabelField("There are no characteristics currently. Please check the variable editor");
+            }
         }
         EditorGUILayout.EndHorizontal();
         EditorGUILayout.BeginHorizontal();
@@ -124,8 +182,8 @@ public class EventEditorWindow : EditorWindow
             AssetDatabase.SaveAssets();
             Debug.Log("Created new MyEditorData asset at " + assetPath);
 
-            myAsset.selectedJobOption = selectedJobOption;
-            myAsset.DependableJobOption = DependableJobOption;
+            myAsset.selectedJobOption = myChosenJobb;
+            myAsset.DependableJobOption = myDependableChosenJobb;
             myAsset.selectedRelationDependable = selectedRelationDependable;
             myAsset.relationAmount = relationAmount;
             myAsset.DependableCharacterAge = DependableCharacterAge;
@@ -146,14 +204,23 @@ public class EventEditorWindow : EditorWindow
             myAsset.myDependableAgeRequierment = myDependableAgeRequierment;
             myAsset.ChanceOfHappening = ChanceOfHappening;
             myAsset.HasSecondEvent = HasSecondEvent;
+            myAsset.socialClass = socialClass;  
+            myAsset.IsSocialClassDependant = IsSocialClassDependant;  
+            myAsset.IsCharacteristicDependant = IsCharacteristicDependant;
+            myAsset.myChosenCharacteristic = myChosenCharacteristic;
 
             myAssetRegistry.Events.Add(myAsset);
             EditorUtility.SetDirty(myAssetRegistry);
             EditorUtility.SetDirty(myAsset);
             AssetDatabase.SaveAssets();
 
-            selectedJobOption = GameHub.Job.Peasant;
-            DependableJobOption = GameHub.Job.Peasant;
+            myChosenJobb = null;
+            myDependableChosenJobb = null;
+            mySelectedJobb = 0;
+            myDependableSelectedJob = 0;
+            myChosenCharacteristic = null;
+            IsCharacteristicDependant = false;
+            socialClass = GameHub.SocialClass.Commoner;
             selectedRelationOption = GameHub.RelationType.Stranger;
             selectedRelationDependable = GameHub.RelationType.Stranger;
             relationAmount = 1;
@@ -226,7 +293,16 @@ public class EventEditorWindow : EditorWindow
                     }
                 case GameHub.EventResult.Job:
                     {
-                        buttonResults[buttonIndex].results[i].myJob = (GameHub.Job)EditorGUILayout.EnumPopup("Job Gotten:", buttonResults[buttonIndex].results[i].myJob);
+                        if (myDataScriptableObject.Jobbs.Count > 0)
+                        {
+                            string[] jobs = myDataScriptableObject.Jobbs.ConvertAll(p => p.myJob).ToArray();
+                            buttonResults[buttonIndex].results[i].selectedJob = EditorGUILayout.Popup(buttonResults[buttonIndex].results[i].selectedJob, jobs);
+                            buttonResults[buttonIndex].results[i].myJob = myDataScriptableObject.Jobbs[myDependableSelectedJob];
+                        }
+                        else
+                        {
+                            EditorGUILayout.LabelField("There are no Jobs currently. Please check the variable editor");
+                        }
                         break;
                     }
                 case GameHub.EventResult.Character:
@@ -239,7 +315,16 @@ public class EventEditorWindow : EditorWindow
                             buttonResults[buttonIndex].results[i].RandomizeJob = EditorGUILayout.Toggle("Randomize Job", buttonResults[buttonIndex].results[i].RandomizeJob);
                             if(buttonResults[buttonIndex].results[i].RandomizeJob == false)
                             {
-                                buttonResults[buttonIndex].results[i].CharacterJob = (GameHub.Job)EditorGUILayout.EnumPopup("Job:", buttonResults[buttonIndex].results[i].CharacterJob);
+                                if (myDataScriptableObject.Jobbs.Count > 0)
+                                {
+                                    string[] jobs = myDataScriptableObject.Jobbs.ConvertAll(p => p.myJob).ToArray();
+                                    buttonResults[buttonIndex].results[i].selectedJob = EditorGUILayout.Popup(buttonResults[buttonIndex].results[i].selectedJob, jobs);
+                                    buttonResults[buttonIndex].results[i].myJob = myDataScriptableObject.Jobbs[myDependableSelectedJob];
+                                }
+                                else
+                                {
+                                    EditorGUILayout.LabelField("There are no Jobs currently. Please check the variable editor");
+                                }
                             }
                         }
                         EditorGUILayout.EndHorizontal();
@@ -263,6 +348,23 @@ public class EventEditorWindow : EditorWindow
                         }
                         EditorGUILayout.EndHorizontal();
 
+                        break;
+                    }
+                case GameHub.EventResult.Characteristic:
+                    {
+                        if (myDataScriptableObject.characteristics.Count > 0)
+                        {
+                            EditorGUILayout.BeginHorizontal();
+                            EditorGUILayout.LabelField("Add characteristic to Player");
+                            string[] characteristics = myDataScriptableObject.characteristics.ConvertAll(p => p.myCharacteristic).ToArray();
+                            buttonResults[buttonIndex].results[i].selectedCharacteristic = EditorGUILayout.Popup(buttonResults[buttonIndex].results[i].selectedCharacteristic, characteristics);
+                            buttonResults[buttonIndex].results[i].characteristic = myDataScriptableObject.characteristics[buttonResults[buttonIndex].results[i].selectedCharacteristic];
+                            EditorGUILayout.EndHorizontal();
+                        }
+                        else
+                        {
+                            EditorGUILayout.LabelField("There are no characteristics currently. Please check the variable editor");
+                        }
                         break;
                     }
             }
@@ -312,7 +414,16 @@ public class EventEditorWindow : EditorWindow
         RelationJobDependant = EditorGUILayout.Toggle("Job Dependant:", RelationJobDependant);
         if (RelationJobDependant)
         {
-            DependableJobOption = (GameHub.Job)EditorGUILayout.EnumPopup("Job Dropdown:", DependableJobOption);
+            if (myDataScriptableObject.Jobbs.Count > 0)
+            {
+                string[] jobs = myDataScriptableObject.Jobbs.ConvertAll(i => i.myJob).ToArray();
+                myDependableSelectedJob = EditorGUILayout.Popup(myDependableSelectedJob, jobs);
+                myDependableChosenJobb = myDataScriptableObject.Jobbs[myDependableSelectedJob];
+            }
+            else
+            {
+                EditorGUILayout.LabelField("There are no Jobs currently. Please check the variable editor");
+            }
         }
         EditorGUILayout.EndHorizontal();
     }

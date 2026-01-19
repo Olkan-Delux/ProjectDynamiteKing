@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 99b5d42f537f1bf40a82ad4d5e6fb31f, type: 3}
+  m_Name: EventScriptableObject 1
+  m_EditorClassIdentifier: 
+  selectedJobOption: 0
+  DependableJobOption: 0
+  selectedRelationDependable: 7
+  relationAmount: 1
+  Age: 0
+  myAgeRequierment: 0
+  myDependableAgeRequierment: 0
+  DependableCharacterAge: 10
+  JobDependant: 0
+  AgeDependant: 0
+  DependableCharacterFlag: 0
+  RelationJobDependant: 0
+  RelationAgeDependant: 0
+  CanBeGottenAgain: 0
+  IsSocialClassDependant: 1
+  ChanceOfHappening: 50
+  socialClass: 1
+  EventTitle: NIGGERS
+  EventText: NIGGERS
+  HasSecondEvent: 00
+  buttonTexts:
+  - NIGGERS
+  buttonResultEventText:
+  - 
+  buttonResultEventTitle:
+  - 
+  buttonResultButtonText:
+  - 
+  RandomizeName: 0
+  RandomizeAge: 0
+  ShouldHaveJob: 0
+  RandomizeJob: 0
+  CharacterAge: 0
+  CharacterJob: 0
+  CharacterRelation: 7
+  buttonResults:
+  - results: []

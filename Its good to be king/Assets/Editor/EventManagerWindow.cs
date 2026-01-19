@@ -55,8 +55,8 @@ public class EventManagerWindow : EditorWindow
             if (GUILayout.Button("Load Event in Manager", GUILayout.Height(25)))
             {
                 EventEditorWindow window = GetWindow<EventEditorWindow>("Event Editor Window");
-                window.selectedJobOption = mySelectedObject.selectedJobOption;
-                window.DependableJobOption = mySelectedObject.DependableJobOption;
+                window.myChosenJobb = mySelectedObject.selectedJobOption;
+                window.myDependableChosenJobb = mySelectedObject.DependableJobOption;
                 //window.selectedRelationOption = mySelectedObject.selectedRelationOption;
                 window.selectedRelationDependable = mySelectedObject.selectedRelationDependable;
                 window.relationAmount = mySelectedObject.relationAmount;

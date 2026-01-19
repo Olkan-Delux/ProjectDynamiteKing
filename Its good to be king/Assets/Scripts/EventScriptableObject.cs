@@ -12,8 +12,8 @@ public class EventScriptableObject : ScriptableObject
         Below,
         Exact
     };
-    public GameHub.Job selectedJobOption;
-    public GameHub.Job DependableJobOption;
+    public Jobb selectedJobOption;
+    public Jobb DependableJobOption;
     public GameHub.RelationType selectedRelationDependable;
     public int relationAmount;
     public int Age;
@@ -26,7 +26,11 @@ public class EventScriptableObject : ScriptableObject
     public bool RelationJobDependant;
     public bool RelationAgeDependant;
     public bool CanBeGottenAgain;
+    public bool IsSocialClassDependant = true;
+    public bool IsCharacteristicDependant;
+    public Characteristic myChosenCharacteristic;
     public float ChanceOfHappening;
+    public GameHub.SocialClass socialClass = GameHub.SocialClass.Commoner;
 
     public string EventTitle;
     public string EventText;
@@ -41,7 +45,7 @@ public class EventScriptableObject : ScriptableObject
     public bool ShouldHaveJob = false;
     public bool RandomizeJob = false;
     public int CharacterAge = 0;
-    public GameHub.Job CharacterJob = GameHub.Job.Peasant;
+    //public GameHub.Job CharacterJob = GameHub.Job.Peasant;
     public GameHub.RelationType CharacterRelation = GameHub.RelationType.Stranger;
 
     public List<ResultDataRegistry> buttonResults = new List<ResultDataRegistry>();
@@ -59,7 +63,8 @@ public class ResultData
     public GameHub.EventResult myResult;
     public int myMoney;
     public GameHub.RelationType myRelationType;
-    public GameHub.Job myJob;
+    public Jobb myJob;
+    public int selectedJob = 0;
 
     public bool RandomizeName = true;
     public bool RandomizeAge = false;
@@ -68,9 +73,10 @@ public class ResultData
     public bool RandomizeGender = false;
     public bool OppositeGender = false;
     public int CharacterAge = 0;
-    public GameHub.Job CharacterJob = GameHub.Job.Nothing;
     public GameHub.RelationType CharacterRelation = GameHub.RelationType.Stranger;
     public GameHub.Gender CharacterGender = GameHub.Gender.Girl;
+    public Characteristic characteristic = null;
+    public int selectedCharacteristic = 0;
 }
 
 [System.Serializable]

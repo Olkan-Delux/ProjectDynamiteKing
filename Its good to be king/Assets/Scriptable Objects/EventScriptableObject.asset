@@ -26,10 +26,12 @@ MonoBehaviour:
   RelationJobDependant: 0
   RelationAgeDependant: 0
   CanBeGottenAgain: 0
-  ChanceOfHappening: 100
+  IsSocialClassDependant: 1
+  ChanceOfHappening: 50
+  socialClass: 1
   EventTitle: Jag sket ner mig
   EventText: Jag sket ner mig
-  HasSecondEvent: 0100
+  HasSecondEvent: 0101
   buttonTexts:
   - "Skit ner dig \xE4nnu mer"
   - Sug upp bajset igen

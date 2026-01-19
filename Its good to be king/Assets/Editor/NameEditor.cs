@@ -5,6 +5,13 @@ using UnityEngine;
 
 public class NameEditor : EditorWindow
 {
+    public enum NameType
+    {
+        Boy,
+        Girl,
+        LastName,
+    }
+
     private const string NameDataPath = "Assets/Scriptable Objects/NameScriptableObject.asset";
     public NameScriptableObject myNames;
     public List<NameRegion> myRegions = new List<NameRegion>();
@@ -17,7 +24,8 @@ public class NameEditor : EditorWindow
     private NameRegion selectedRegion;
     private int mySelectedMaleName = -1;
     private int mySelectedFemaleName = -1;
-    private GameHub.Gender selectedGender = GameHub.Gender.Boy;
+    private int mySelectedLastName = -1;
+    private NameType selectedGender = NameType.Boy;
     private string[] myRegionDeleteWarningMessages = new string[] { "Delete", "Are you sure?", "Last warning, Are you really sure?" };  
     private int myRegionDeleteStatus = 0;
     private bool myRegionDeleteToggle = false;
@@ -94,6 +102,8 @@ public class NameEditor : EditorWindow
         Color oldColor = GUI.backgroundColor;
         shouldNullRegion = false;
         EditorGUILayout.BeginHorizontal();
+        EditorGUILayout.BeginVertical();
+        EditorGUILayout.LabelField("Male Names", EditorStyles.boldLabel);
         scrollPosMale = EditorGUILayout.BeginScrollView(scrollPosMale, EditorStyles.helpBox);
         for (int i = 0; i < selectedRegion.MaleNames.Count; i++)
         {
@@ -121,6 +131,9 @@ public class NameEditor : EditorWindow
             GUI.backgroundColor = oldColor;
         }
         EditorGUILayout.EndScrollView();
+        GUILayout.EndVertical();
+        GUILayout.BeginVertical();
+        EditorGUILayout.LabelField("Female Names", EditorStyles.boldLabel);
         scrollPosFemale = EditorGUILayout.BeginScrollView(scrollPosFemale, EditorStyles.helpBox);
         for (int i = 0; i < selectedRegion.FemaleNames.Count; i++)
         {
@@ -148,26 +161,62 @@ public class NameEditor : EditorWindow
             GUI.backgroundColor = oldColor;
         }
         EditorGUILayout.EndScrollView();
+        GUILayout.EndVertical();
+        EditorGUILayout.BeginVertical();
+        EditorGUILayout.LabelField("Last Names", EditorStyles.boldLabel);
+        scrollPosMale = EditorGUILayout.BeginScrollView(scrollPosMale, EditorStyles.helpBox);
+        for (int i = 0; i < selectedRegion.LastNames.Count; i++)
+        {
+            if (i % 2 == 0)
+            {
+                GUI.backgroundColor = Color.gray;
+            }
+            if (i == mySelectedLastName)
+            {
+                GUI.backgroundColor = Color.blue;
+            }
+            if (GUILayout.Button(selectedRegion.LastNames[i]))
+            {
+                mySelectedMaleName = i;
+            }
+            if (i == mySelectedLastName)
+            {
+                GUI.backgroundColor = Color.red;
+                if (GUILayout.Button("Delete " + selectedRegion.LastNames[i]))
+                {
+                    selectedRegion.LastNames.RemoveAt(i);
+                    Save();
+                }
+            }
+            GUI.backgroundColor = oldColor;
+        }
+        EditorGUILayout.EndScrollView();
+        GUILayout.EndVertical();
         GUILayout.EndHorizontal();
 
         if (GUILayout.Button("Create new Name"))
         {
-            if(selectedGender == GameHub.Gender.Boy)
+            if(selectedGender == NameType.Boy)
             {
                 string aNewName = newName;
                 selectedRegion.MaleNames.Add(aNewName);
             }
-            else
+            else if(selectedGender == NameType.Girl)
             {
                 string aNewName = newName;
                 selectedRegion.FemaleNames.Add(aNewName);
+            }
+            else
+            {
+                string aNewName = newName;
+                selectedRegion.LastNames.Add(aNewName);
             }
             newName = "";
             Save();
         }
         GUILayout.BeginVertical(EditorStyles.helpBox);
         GUILayout.BeginHorizontal();
-        selectedGender = (GameHub.Gender)EditorGUILayout.EnumPopup("Gender :", selectedGender);
+        selectedGender = (NameType)EditorGUILayout.EnumPopup("NameType :", selectedGender);
         newName = EditorGUILayout.TextField("Name :", newName);
         GUILayout.EndHorizontal();
         if (GUILayout.Button("Exit " + selectedRegion.myRegion + " Menu"))
