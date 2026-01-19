@@ -106,13 +106,6 @@ Build/
 Builds/
 Logs/
 
-# Unity cache
-UserSettings/
-
-# Visual Studio / VS Code
-.vs/
-.vscode/
-
-# OS files
+# OS-specific files
 .DS_Store
 Thumbs.db
