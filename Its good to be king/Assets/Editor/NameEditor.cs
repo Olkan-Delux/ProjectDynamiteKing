@@ -20,6 +20,7 @@ public class NameEditor : EditorWindow
     private Vector2 scrollPos;
     private Vector2 scrollPosMale;
     private Vector2 scrollPosFemale;
+    private Vector2 scrollPosLastName;
     bool isInRegionMenu = false;
     private NameRegion selectedRegion;
     private int mySelectedMaleName = -1;
@@ -88,6 +89,7 @@ public class NameEditor : EditorWindow
             newNameRegion.myRegion = newRegionName;
             newNameRegion.MaleNames = new List<string>();
             newNameRegion.FemaleNames = new List<string>();
+            newNameRegion.LastNames = new List<string>();
             myRegions.Add(newNameRegion);
             newRegionName = "";
             Save();
@@ -164,7 +166,7 @@ public class NameEditor : EditorWindow
         GUILayout.EndVertical();
         EditorGUILayout.BeginVertical();
         EditorGUILayout.LabelField("Last Names", EditorStyles.boldLabel);
-        scrollPosMale = EditorGUILayout.BeginScrollView(scrollPosMale, EditorStyles.helpBox);
+        scrollPosLastName = EditorGUILayout.BeginScrollView(scrollPosLastName, EditorStyles.helpBox);
         for (int i = 0; i < selectedRegion.LastNames.Count; i++)
         {
             if (i % 2 == 0)
@@ -194,7 +196,7 @@ public class NameEditor : EditorWindow
         GUILayout.EndVertical();
         GUILayout.EndHorizontal();
 
-        if (GUILayout.Button("Create new Name"))
+        if (GUILayout.Button("Create new Name") || Input.GetKeyDown(KeyCode.KeypadEnter))
         {
             if(selectedGender == NameType.Boy)
             {
@@ -257,8 +259,9 @@ public class NameEditor : EditorWindow
 
     public void Save()
     {
+        Undo.RecordObject(myNames, "Update Regions");
         myNames = AssetDatabase.LoadAssetAtPath<NameScriptableObject>(NameDataPath);
-        myNames.myRegions = myRegions;
+        myNames.myRegions = new List<NameRegion>(myRegions);
         EditorUtility.SetDirty(myNames);
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();

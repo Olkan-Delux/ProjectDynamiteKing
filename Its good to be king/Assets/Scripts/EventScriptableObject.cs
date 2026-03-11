@@ -51,12 +51,6 @@ public class EventScriptableObject : ScriptableObject
     public List<ResultDataRegistry> buttonResults = new List<ResultDataRegistry>();
 }
 
-[CreateAssetMenu(fileName = "EventDataRegistry", menuName = "Tools/Event Data Registry")]
-public class EventRegistryScriptableObject : ScriptableObject
-{
-    public List<EventScriptableObject> Events = new List<EventScriptableObject>();
-}
-
 [System.Serializable]
 public class ResultData
 {

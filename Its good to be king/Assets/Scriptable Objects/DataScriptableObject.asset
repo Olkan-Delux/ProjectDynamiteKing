@@ -13,30 +13,39 @@ MonoBehaviour:
   m_Name: DataScriptableObject
   m_EditorClassIdentifier: 
   characteristics:
-  - myCharacteristic: 
+  - myCharacteristic: Drunk Retard
+    myInheritanceChance: 10
+    myDevelopmentChance: 10
+  - myCharacteristic: Illiterate
     myInheritanceChance: 0
     myDevelopmentChance: 0
   AgeGroups:
-  - myAgeGroupName: Children
+  - myAgeGroupName: Infant
     myAgeGroupLowAge: 0
-    myAgeGroupTopAge: 0
+    myAgeGroupTopAge: 2
     myChildChance: 0
-    myDeathChance: 0
+    myDeathChance: 25
   - myAgeGroupName: Poopsies
-    myAgeGroupLowAge: 0
+    myAgeGroupLowAge: 1
     myAgeGroupTopAge: 0
     myChildChance: 0
     myDeathChance: 0
+  - myAgeGroupName: Child
+    myAgeGroupLowAge: 2
+    myAgeGroupTopAge: 13
+    myChildChance: 0
+    myDeathChance: 5
   Jobbs:
   - myJob: Farmer Apprentice
     myBaseLowSalary: 1
     myBaseHighSalary: 10
-    myAcceptanceRate: 30
+    myAcceptanceRate: 100
     HasSequenceJob: 1
     canGetPromoted: 1
     MyYearsTilPromotion: 3
     IsVisibleInJobMenu: 1
     CanCharactersRandomlyGet: 0
+    deathChanceIncrease: 0
   - myJob: Farmer
     myBaseLowSalary: 10
     myBaseHighSalary: 30
@@ -46,6 +55,7 @@ MonoBehaviour:
     MyYearsTilPromotion: 0
     IsVisibleInJobMenu: 0
     CanCharactersRandomlyGet: 0
+    deathChanceIncrease: 0
   - myJob: Slave Master
     myBaseLowSalary: 100
     myBaseHighSalary: 1000
@@ -55,3 +65,4 @@ MonoBehaviour:
     MyYearsTilPromotion: 0
     IsVisibleInJobMenu: 1
     CanCharactersRandomlyGet: 0
+    deathChanceIncrease: 0
