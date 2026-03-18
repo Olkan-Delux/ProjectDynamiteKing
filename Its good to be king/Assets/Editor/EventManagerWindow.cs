@@ -60,7 +60,7 @@ public class EventManagerWindow : EditorWindow
                 //window.selectedRelationOption = mySelectedObject.selectedRelationOption;
                 window.selectedRelationDependable = mySelectedObject.selectedRelationDependable;
                 window.relationAmount = mySelectedObject.relationAmount;
-                window.Age = mySelectedObject.Age;
+                //window.Age = mySelectedObject.Age;
                 window.DependableCharacterAge = mySelectedObject.DependableCharacterAge;
                 window.JobDependant = mySelectedObject.JobDependant;
                 window.AgeDependant = mySelectedObject.AgeDependant;
@@ -68,14 +68,21 @@ public class EventManagerWindow : EditorWindow
                 window.RelationJobDependant = mySelectedObject.RelationJobDependant;
                 window.RelationAgeDependant = mySelectedObject.RelationAgeDependant;
                 window.CanBeGottenAgain = mySelectedObject.CanBeGottenAgain;
-                window.ChanceOfHappening = mySelectedObject.ChanceOfHappening;
                 window.EventTitle = mySelectedObject.EventTitle;
                 window.EventText = mySelectedObject.EventText;
                 window.buttonTexts = mySelectedObject.buttonTexts;
-                window.buttonResultEventText = mySelectedObject.buttonResultEventText;
-                window.buttonResultEventTitle = mySelectedObject.buttonResultEventTitle;
-                window.buttonResultButtonText = mySelectedObject.buttonResultButtonText;
                 window.buttonResults = mySelectedObject.buttonResults;
+                window.buttonResultEventTitle = mySelectedObject.buttonResultEventTitle;
+                window.buttonResultEventText = mySelectedObject.buttonResultEventText;
+                window.buttonResultButtonText = mySelectedObject.buttonResultButtonText;
+                window.myAgeRequierment = mySelectedObject.myAgeRequierment;
+                window.myDependableAgeRequierment = mySelectedObject.myDependableAgeRequierment;
+                window.ChanceOfHappening = mySelectedObject.ChanceOfHappening;
+                window.HasSecondEvent = mySelectedObject.HasSecondEvent;
+                window.socialClass = mySelectedObject.socialClass;
+                window.IsSocialClassDependant = mySelectedObject.IsSocialClassDependant;
+                window.IsCharacteristicDependant = mySelectedObject.IsCharacteristicDependant;
+                window.myChosenCharacteristic = mySelectedObject.myChosenCharacteristic;
                 window.ButtonNumber = mySelectedObject.buttonTexts.Count;
 
                 this.Close();
