@@ -19,6 +19,30 @@ MonoBehaviour:
   - myCharacteristic: Illiterate
     myInheritanceChance: 0
     myDevelopmentChance: 0
+  - myCharacteristic: Fat
+    myInheritanceChance: 15
+    myDevelopmentChance: 15
+  - myCharacteristic: Strong
+    myInheritanceChance: 33
+    myDevelopmentChance: 33
+  - myCharacteristic: Tall
+    myInheritanceChance: 80
+    myDevelopmentChance: 80
+  - myCharacteristic: Has blacksmith apprantice
+    myInheritanceChance: 0
+    myDevelopmentChance: 0
+  - myCharacteristic: Blind
+    myInheritanceChance: 0
+    myDevelopmentChance: 0
+  - myCharacteristic: Cripple
+    myInheritanceChance: 0
+    myDevelopmentChance: 0
+  - myCharacteristic: Chosen of god
+    myInheritanceChance: 0
+    myDevelopmentChance: 0
+  - myCharacteristic: Leporsy
+    myInheritanceChance: 0
+    myDevelopmentChance: 0
   AgeGroups:
   - myAgeGroupName: Infant
     myAgeGroupLowAge: 0
@@ -35,6 +59,21 @@ MonoBehaviour:
     myAgeGroupTopAge: 13
     myChildChance: 0
     myDeathChance: 5
+  - myAgeGroupName: Old
+    myAgeGroupLowAge: 60
+    myAgeGroupTopAge: 80
+    myChildChance: 0
+    myDeathChance: 2
+  - myAgeGroupName: Super Old
+    myAgeGroupLowAge: 81
+    myAgeGroupTopAge: 100
+    myChildChance: 0
+    myDeathChance: 8
+  - myAgeGroupName: Super duper old
+    myAgeGroupLowAge: 101
+    myAgeGroupTopAge: 500
+    myChildChance: 0
+    myDeathChance: 20
   Jobbs:
   - myJob: Farmer Apprentice
     myBaseLowSalary: 1
@@ -53,13 +92,63 @@ MonoBehaviour:
     HasSequenceJob: 0
     canGetPromoted: 0
     MyYearsTilPromotion: 0
-    IsVisibleInJobMenu: 0
+    IsVisibleInJobMenu: 1
     CanCharactersRandomlyGet: 0
     deathChanceIncrease: 0
   - myJob: Slave Master
     myBaseLowSalary: 100
     myBaseHighSalary: 1000
     myAcceptanceRate: 100
+    HasSequenceJob: 0
+    canGetPromoted: 0
+    MyYearsTilPromotion: 0
+    IsVisibleInJobMenu: 1
+    CanCharactersRandomlyGet: 0
+    deathChanceIncrease: 0
+  - myJob: Baker
+    myBaseLowSalary: 40
+    myBaseHighSalary: 75
+    myAcceptanceRate: 50
+    HasSequenceJob: 0
+    canGetPromoted: 0
+    MyYearsTilPromotion: 0
+    IsVisibleInJobMenu: 1
+    CanCharactersRandomlyGet: 1
+    deathChanceIncrease: 0
+  - myJob: Weaver
+    myBaseLowSalary: 20
+    myBaseHighSalary: 40
+    myAcceptanceRate: 50
+    HasSequenceJob: 0
+    canGetPromoted: 0
+    MyYearsTilPromotion: 0
+    IsVisibleInJobMenu: 1
+    CanCharactersRandomlyGet: 1
+    deathChanceIncrease: 0
+  - myJob: Squrie
+    myBaseLowSalary: 200
+    myBaseHighSalary: 500
+    myAcceptanceRate: 1
+    HasSequenceJob: 0
+    canGetPromoted: 0
+    MyYearsTilPromotion: 0
+    IsVisibleInJobMenu: 0
+    CanCharactersRandomlyGet: 0
+    deathChanceIncrease: 0
+  - myJob: Jail
+    myBaseLowSalary: 0
+    myBaseHighSalary: 0
+    myAcceptanceRate: 0
+    HasSequenceJob: 0
+    canGetPromoted: 0
+    MyYearsTilPromotion: 0
+    IsVisibleInJobMenu: 0
+    CanCharactersRandomlyGet: 0
+    deathChanceIncrease: 0
+  - myJob: Monk
+    myBaseLowSalary: 10
+    myBaseHighSalary: 30
+    myAcceptanceRate: 0
     HasSequenceJob: 0
     canGetPromoted: 0
     MyYearsTilPromotion: 0

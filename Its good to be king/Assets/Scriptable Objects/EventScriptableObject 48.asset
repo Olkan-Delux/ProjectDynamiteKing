@@ -1,0 +1,111 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 99b5d42f537f1bf40a82ad4d5e6fb31f, type: 3}
+  m_Name: EventScriptableObject 48
+  m_EditorClassIdentifier: 
+  selectedJobOption:
+    myJob: 
+    myBaseLowSalary: 0
+    myBaseHighSalary: 0
+    myAcceptanceRate: 0
+    HasSequenceJob: 0
+    canGetPromoted: 0
+    MyYearsTilPromotion: 0
+    IsVisibleInJobMenu: 0
+    CanCharactersRandomlyGet: 0
+    deathChanceIncrease: 0
+  DependableJobOption:
+    myJob: 
+    myBaseLowSalary: 0
+    myBaseHighSalary: 0
+    myAcceptanceRate: 0
+    HasSequenceJob: 0
+    canGetPromoted: 0
+    MyYearsTilPromotion: 0
+    IsVisibleInJobMenu: 0
+    CanCharactersRandomlyGet: 0
+    deathChanceIncrease: 0
+  selectedRelationDependable: 7
+  relationAmount: 1
+  Age: 0
+  myAgeRequierment: 0
+  myDependableAgeRequierment: 0
+  DependableCharacterAge: 10
+  JobDependant: 0
+  AgeDependant: 1
+  DependableCharacterFlag: 0
+  RelationJobDependant: 0
+  RelationAgeDependant: 0
+  CanBeGottenAgain: 0
+  IsSocialClassDependant: 1
+  IsCharacteristicDependant: 0
+  myChosenCharacteristic:
+    myCharacteristic: 
+    myInheritanceChance: 0
+    myDevelopmentChance: 0
+  ChanceOfHappening: 0.2
+  socialClass: 1
+  EventTitle: Personal event 40 - Demand lower taxes
+  EventText: "The peasants are angry about the taxes and are heading for the lord\u2019s
+    manor"
+  HasSecondEvent: 0100
+  buttonTexts:
+  - Join them
+  - Ignore
+  buttonResultEventText:
+  - Personal event 40.1
+  - 
+  buttonResultEventTitle:
+  - 'The guards easily dispersed the mob of peasants. They beat you up and took you
+    prisoner. '
+  - 
+  buttonResultButtonText:
+  - I think I broke a rib
+  - 
+  RandomizeName: 0
+  RandomizeAge: 0
+  ShouldHaveJob: 0
+  RandomizeJob: 0
+  CharacterAge: 0
+  CharacterRelation: 7
+  buttonResults:
+  - results:
+    - myResult: 4
+      myMoney: 0
+      myRelationType: 0
+      myJob:
+        myJob: Farmer Apprentice
+        myBaseLowSalary: 1
+        myBaseHighSalary: 10
+        myAcceptanceRate: 100
+        HasSequenceJob: 1
+        canGetPromoted: 1
+        MyYearsTilPromotion: 3
+        IsVisibleInJobMenu: 1
+        CanCharactersRandomlyGet: 0
+        deathChanceIncrease: 0
+      selectedJob: 6
+      RandomizeName: 1
+      RandomizeAge: 0
+      ShouldHaveJob: 0
+      RandomizeJob: 0
+      RandomizeGender: 0
+      OppositeGender: 0
+      CharacterAge: 0
+      CharacterRelation: 7
+      CharacterGender: 1
+      characteristic:
+        myCharacteristic: 
+        myInheritanceChance: 0
+        myDevelopmentChance: 0
+      selectedCharacteristic: 0
+  - results: []
