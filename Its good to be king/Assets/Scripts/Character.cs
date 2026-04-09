@@ -256,6 +256,42 @@ public class Character
 
     public Character AddRelation(Character aCharacter, GameHub.RelationType aRelationType)
     {
+        if ((this == GameHub.Instance.GetPlayer().myCharacter))
+        {
+            switch (aRelationType)
+            {
+                case GameHub.RelationType.Wife:
+                    {
+                        GameHub.Instance.namePlaceholders["{Wife}"] = aCharacter.myName;
+                        break;
+                    }
+                case GameHub.RelationType.Father:
+                    {
+                        GameHub.Instance.namePlaceholders["{Father}"] = aCharacter.myName;
+                        break;
+                    }
+                case GameHub.RelationType.Mother:
+                    {
+                        GameHub.Instance.namePlaceholders["{Mother}"] = aCharacter.myName;
+                        break;
+                    }
+                case GameHub.RelationType.Child:
+                    {
+                        GameHub.Instance.namePlaceholders["{Child}"] = aCharacter.myName;
+                        break;
+                    }
+                case GameHub.RelationType.Sister:
+                    {
+                        GameHub.Instance.namePlaceholders["{Sister}"] = aCharacter.myName;
+                        break;
+                    }
+                case GameHub.RelationType.Brother:
+                    {
+                        GameHub.Instance.namePlaceholders["{Brother}"] = aCharacter.myName;
+                        break;
+                    }
+            }
+        }
         Relation relation = new Relation();
         relation.myRelation = aCharacter;
         relation.relationType = aRelationType;

@@ -1,9 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UI;
+using System.Text.RegularExpressions;
 using TMPro;
+using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
+using static System.Net.Mime.MediaTypeNames;
 
 public struct EventDesicion
 {
@@ -90,5 +92,14 @@ public class Event : MonoBehaviour
     public void DeActivate()
     {
         panel.SetActive(false);
+    }
+
+    private string ReplacePlaceHolders(string aText, Dictionary<string, string> values)
+    {
+        return Regex.Replace(aText, @"\{(.*?)\}", match =>
+        {
+            string key = match.Value;
+            return values.ContainsKey(key) ? values[key] : match.Value;
+        });
     }
 }

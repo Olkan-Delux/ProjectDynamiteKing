@@ -1,10 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using System.IO;
-using UnityEditor;
-using System.Security;
 using System.Linq;
+using System.Numerics;
+using System.Security;
+using UnityEditor;
+using UnityEngine;
 
 public class ButtonEvent
 {
@@ -25,18 +26,18 @@ public class ChanceEvent
     public List<Event> myResultEvents = new List<Event>();
     public List<int> myResultEventsIndex = new List<int>();
     public Jobb selectedJobOption;
-    public Jobb DependableJobOption;
-    public GameHub.RelationType selectedRelationDependable;
     public int relationAmount;
     public int Age;
     public EventScriptableObject.AgeRequierment myAgeRequierment;
-    public EventScriptableObject.AgeRequierment myDependableAgeRequierment;
-    public int DependableCharacterAge;
+    //public Jobb DependableJobOption;
+    //public GameHub.RelationType selectedRelationDependable;
+    //public EventScriptableObject.AgeRequierment myDependableAgeRequierment;
+    //public int DependableCharacterAge;
+    //public bool DependableCharacterFlag;
+    //public bool RelationJobDependant;
+    //public bool RelationAgeDependant;
     public bool JobDependant;
     public bool AgeDependant;
-    public bool DependableCharacterFlag;
-    public bool RelationJobDependant;
-    public bool RelationAgeDependant;
     public bool CanBeGottenAgain;
     public bool hasBeenGotten;
     public bool IsSocialClassDependant;
@@ -48,7 +49,9 @@ public class ChanceEvent
     public string EventTitle;
     public string EventText;
     public List<string> buttonTexts;
-    public List<ResultDataRegistry> buttonResults = new List<ResultDataRegistry>();
+    public List<ButtonAlternativeResultData> myButtonAlternatives = new List<ButtonAlternativeResultData>();
+    //public List<ResultDataRegistry> buttonResults = new List<ResultDataRegistry>();
+    public List<DependableData> dependables = new List<DependableData>();
 }
 
 
@@ -135,7 +138,15 @@ public class GameHub : MonoBehaviour
 
     private static GameHub instance;
 
-
+    public Dictionary<string, string> namePlaceholders = new Dictionary<string, string>()
+    {
+        {"Brother", ""},
+        {"sister", ""},
+        {"Mother", ""},
+        {"Father", ""},
+        {"Wife", ""},
+        {"Child", ""},
+    };
     public PlayerHub myPlayer;
     public Map myMap;
     public GameObject EventButton;
@@ -258,97 +269,215 @@ public class GameHub : MonoBehaviour
             character.hasBeenCheckedThisRound = false;
         }
     }
-
     public void UpdateEvents()
     {
-        myChanceIndexes = myChanceIndexes.OrderBy(x => Random.value).ToList();
-        for (int i = 0; i < myChanceIndexes.Count; i++)
-        {
-            bool shouldActivateEvent = true;
-            if(myChanceEvents[myChanceIndexes[i]].IsSocialClassDependant && myChanceEvents[myChanceIndexes[i]].socialClass != myPlayer.GetPlayerCharacter().mySocialClass)
-            {
-                shouldActivateEvent = false;
-            }
-            if (myChanceEvents[myChanceIndexes[i]].CanBeGottenAgain)
-            {
+        var playerCharacter = myPlayer.GetPlayerCharacter();
 
-            }
-            if (myChanceEvents[myChanceIndexes[i]].JobDependant && myPlayer.GetPlayerCharacter().myJob.myJob != myChanceEvents[myChanceIndexes[i]].selectedJobOption.myJob)
-            {
-                shouldActivateEvent = false;
-            }
-            if (myChanceEvents[myChanceIndexes[i]].AgeDependant)
-            {
-                if (myChanceEvents[myChanceIndexes[i]].myAgeRequierment == EventScriptableObject.AgeRequierment.Exact && myPlayer.GetPlayerCharacter().myAge != myChanceEvents[myChanceIndexes[i]].Age)
-                {
-                    shouldActivateEvent = false;
-                }
-                else if(myChanceEvents[myChanceIndexes[i]].myAgeRequierment == EventScriptableObject.AgeRequierment.Below && myPlayer.GetPlayerCharacter().myAge > myChanceEvents[myChanceIndexes[i]].Age)
-                {
-                    shouldActivateEvent = false;
-                }
-                else if(myChanceEvents[myChanceIndexes[i]].myAgeRequierment == EventScriptableObject.AgeRequierment.Above && myPlayer.GetPlayerCharacter().myAge < myChanceEvents[myChanceIndexes[i]].Age)
-                {
-                    shouldActivateEvent = false;
-                }
-            }
-            if (myChanceEvents[myChanceIndexes[i]].IsCharacteristicDependant)
-            {
-                bool hasCharacteristic = false;
-                for(int p = 0; p < myPlayer.GetPlayerCharacter().myCharacteristics.Count; p++)
-                {
-                    if(myChanceEvents[myChanceIndexes[i]].characteristic.myCharacteristic == myPlayer.GetPlayerCharacter().myCharacteristics[p].myCharacteristic)
-                    {
-                        hasCharacteristic = true;
-                    }
-                }
-                if(hasCharacteristic == false)
-                {
-                    shouldActivateEvent = false;
-                }
-            }
-            if (myChanceEvents[myChanceIndexes[i]].ChanceOfHappening < Random.Range(0, 100))
-            {
-                shouldActivateEvent = false;
-            }
-            if(myChanceEvents[myChanceIndexes[i]].DependableCharacterFlag)
-            {
-                Character selectedCharacter = myPlayer.GetPlayerCharacter().GetCharacterFromRelationType(myChanceEvents[myChanceIndexes[i]].selectedRelationDependable)[0];
-                if(selectedCharacter != null)
-                {
-                    if(myChanceEvents[myChanceIndexes[i]].RelationAgeDependant)
-                    {
-                        if (myChanceEvents[myChanceIndexes[i]].myDependableAgeRequierment == EventScriptableObject.AgeRequierment.Exact && selectedCharacter.myAge != myChanceEvents[myChanceIndexes[i]].DependableCharacterAge)
-                        {
-                            shouldActivateEvent = false;
-                        }
-                        else if (myChanceEvents[myChanceIndexes[i]].myDependableAgeRequierment == EventScriptableObject.AgeRequierment.Below && selectedCharacter.myAge > myChanceEvents[myChanceIndexes[i]].DependableCharacterAge)
-                        {
-                            shouldActivateEvent = false;
-                        }
-                        else if (myChanceEvents[myChanceIndexes[i]].myDependableAgeRequierment == EventScriptableObject.AgeRequierment.Above && selectedCharacter.myAge < myChanceEvents[myChanceIndexes[i]].DependableCharacterAge)
-                        {
-                            shouldActivateEvent = false;
-                        }
-                    }
-                    if(selectedCharacter.myJob.myJob != myChanceEvents[myChanceIndexes[i]].DependableJobOption.myJob)
-                    {
-                        shouldActivateEvent = false;
-                    }
-                }
-                else
-                {
-                    shouldActivateEvent = false;
-                }
-            }
-            if (shouldActivateEvent)
-            {
-                myChanceEvents[myChanceIndexes[i]].myEvent.Activate();
-                //myChanceEvents = myChanceEvents.OrderBy(x => Random.value).ToList();
-                return;
-            }
+        myChanceIndexes = myChanceIndexes.OrderBy(x => Random.value).ToList();
+
+        foreach (var index in myChanceIndexes)
+        {
+            var chanceEvent = myChanceEvents[index];
+
+            if (!CanActivateEvent(chanceEvent, playerCharacter))
+                continue;
+
+            chanceEvent.myEvent.Activate();
+            return;
         }
     }
+    private bool CanActivateEvent(ChanceEvent chanceEvent, Character player)
+    {
+        if (!CheckSocialClass(chanceEvent, player)) return false;
+        if (!CheckJob(chanceEvent, player)) return false;
+        if (!CheckAge(chanceEvent, player)) return false;
+        if (!CheckCharacteristics(chanceEvent, player)) return false;
+        if (!CheckChance(chanceEvent)) return false;
+        if (!CheckDependableCharacters(chanceEvent, player)) return false;
+
+        return true;
+    }
+
+    private bool CheckSocialClass(ChanceEvent e, Character player)
+    {
+        return !e.IsSocialClassDependant || e.socialClass == player.mySocialClass;
+    }
+
+    private bool CheckJob(ChanceEvent e, Character player)
+    {
+        return !e.JobDependant || player.myJob.myJob == e.selectedJobOption.myJob;
+    }
+    private bool CheckAge(ChanceEvent e, Character player)
+    {
+        if (!e.AgeDependant) return true;
+
+        switch (e.myAgeRequierment)
+        {
+            case EventScriptableObject.AgeRequierment.Exact:
+                return player.myAge == e.Age;
+
+            case EventScriptableObject.AgeRequierment.Below:
+                return player.myAge <= e.Age;
+
+            case EventScriptableObject.AgeRequierment.Above:
+                return player.myAge >= e.Age;
+
+            default:
+                return true;
+        }
+    }
+
+    private bool CheckCharacteristics(ChanceEvent e, Character player)
+    {
+        if (!e.IsCharacteristicDependant) return true;
+
+        return player.myCharacteristics.Any(c =>
+            c.myCharacteristic == e.characteristic.myCharacteristic);
+    }
+
+    private bool CheckChance(ChanceEvent e)
+    {
+        return e.ChanceOfHappening >= Random.Range(0, 100);
+    }
+
+    private bool CheckDependableCharacters(ChanceEvent e, Character player)
+    {
+        bool areCharactersCorrect = true;
+        for(int i = 0; i < e.dependables.Count; i++)
+        {
+            var characters = player.GetCharacterFromRelationType(e.dependables[i].myRelationType);
+            var selected = characters.FirstOrDefault();
+            if(e.dependables[i].haveOrNotHaveFlag == false && characters.Count == 0)
+            {
+                continue;
+            }
+            if (characters.Count != e.dependables[i].amount) areCharactersCorrect = false;
+
+            if (selected == null) areCharactersCorrect = false;
+            if (e.relationAmount == 0) areCharactersCorrect = false;
+
+            if (e.dependables[i].AgeDependant && !CheckDependableAge(e.dependables[i].AgeRequierment, e.dependables[i].Age, selected))
+                areCharactersCorrect = false;
+
+            if (e.dependables[i].JobDependant && selected.myJob.myJob != e.dependables[i].ChosenJobb.myJob)
+                areCharactersCorrect = false;
+        }
+        return areCharactersCorrect;
+    }
+
+    private bool CheckDependableAge(EventScriptableObject.AgeRequierment ageRequierment, int age, Character character)
+    {
+        switch (ageRequierment)
+        {
+            case EventScriptableObject.AgeRequierment.Exact:
+                return character.myAge == age;
+
+            case EventScriptableObject.AgeRequierment.Below:
+                return character.myAge <= age;
+
+            case EventScriptableObject.AgeRequierment.Above:
+                return character.myAge >= age;
+
+            default:
+                return true;
+        }
+    }
+
+
+    //public void UpdateEvents()
+    //{
+    //    myChanceIndexes = myChanceIndexes.OrderBy(x => Random.value).ToList();
+    //    for (int i = 0; i < myChanceIndexes.Count; i++)
+    //    {
+    //        bool shouldActivateEvent = true;
+    //        if(myChanceEvents[myChanceIndexes[i]].IsSocialClassDependant && myChanceEvents[myChanceIndexes[i]].socialClass != myPlayer.GetPlayerCharacter().mySocialClass)
+    //        {
+    //            shouldActivateEvent = false;
+    //        }
+    //        if (myChanceEvents[myChanceIndexes[i]].CanBeGottenAgain)
+    //        {
+
+    //        }
+    //        if (myChanceEvents[myChanceIndexes[i]].JobDependant && myPlayer.GetPlayerCharacter().myJob.myJob != myChanceEvents[myChanceIndexes[i]].selectedJobOption.myJob)
+    //        {
+    //            shouldActivateEvent = false;
+    //        }
+    //        if (myChanceEvents[myChanceIndexes[i]].AgeDependant)
+    //        {
+    //            if (myChanceEvents[myChanceIndexes[i]].myAgeRequierment == EventScriptableObject.AgeRequierment.Exact && myPlayer.GetPlayerCharacter().myAge != myChanceEvents[myChanceIndexes[i]].Age)
+    //            {
+    //                shouldActivateEvent = false;
+    //            }
+    //            else if(myChanceEvents[myChanceIndexes[i]].myAgeRequierment == EventScriptableObject.AgeRequierment.Below && myPlayer.GetPlayerCharacter().myAge > myChanceEvents[myChanceIndexes[i]].Age)
+    //            {
+    //                shouldActivateEvent = false;
+    //            }
+    //            else if(myChanceEvents[myChanceIndexes[i]].myAgeRequierment == EventScriptableObject.AgeRequierment.Above && myPlayer.GetPlayerCharacter().myAge < myChanceEvents[myChanceIndexes[i]].Age)
+    //            {
+    //                shouldActivateEvent = false;
+    //            }
+    //        }
+    //        if (myChanceEvents[myChanceIndexes[i]].IsCharacteristicDependant)
+    //        {
+    //            bool hasCharacteristic = false;
+    //            for(int p = 0; p < myPlayer.GetPlayerCharacter().myCharacteristics.Count; p++)
+    //            {
+    //                if(myChanceEvents[myChanceIndexes[i]].characteristic.myCharacteristic == myPlayer.GetPlayerCharacter().myCharacteristics[p].myCharacteristic)
+    //                {
+    //                    hasCharacteristic = true;
+    //                }
+    //            }
+    //            if(hasCharacteristic == false)
+    //            {
+    //                shouldActivateEvent = false;
+    //            }
+    //        }
+    //        if (myChanceEvents[myChanceIndexes[i]].ChanceOfHappening < Random.Range(0, 100))
+    //        {
+    //            shouldActivateEvent = false;
+    //        }
+    //        if(myChanceEvents[myChanceIndexes[i]].DependableCharacterFlag)
+    //        {
+    //            Character selectedCharacter = myPlayer.GetPlayerCharacter().GetCharacterFromRelationType(myChanceEvents[myChanceIndexes[i]].selectedRelationDependable)[0];
+    //            if(selectedCharacter != null)
+    //            {
+    //                if(myChanceEvents[myChanceIndexes[i]].relationAmount == 0)
+    //                {
+    //                    shouldActivateEvent = false;
+    //                }
+    //                if(myChanceEvents[myChanceIndexes[i]].RelationAgeDependant)
+    //                {
+    //                    if (myChanceEvents[myChanceIndexes[i]].myDependableAgeRequierment == EventScriptableObject.AgeRequierment.Exact && selectedCharacter.myAge != myChanceEvents[myChanceIndexes[i]].DependableCharacterAge)
+    //                    {
+    //                        shouldActivateEvent = false;
+    //                    }
+    //                    else if (myChanceEvents[myChanceIndexes[i]].myDependableAgeRequierment == EventScriptableObject.AgeRequierment.Below && selectedCharacter.myAge > myChanceEvents[myChanceIndexes[i]].DependableCharacterAge)
+    //                    {
+    //                        shouldActivateEvent = false;
+    //                    }
+    //                    else if (myChanceEvents[myChanceIndexes[i]].myDependableAgeRequierment == EventScriptableObject.AgeRequierment.Above && selectedCharacter.myAge < myChanceEvents[myChanceIndexes[i]].DependableCharacterAge)
+    //                    {
+    //                        shouldActivateEvent = false;
+    //                    }
+    //                }
+    //                if(selectedCharacter.myJob.myJob != myChanceEvents[myChanceIndexes[i]].DependableJobOption.myJob)
+    //                {
+    //                    shouldActivateEvent = false;
+    //                }
+    //            }
+    //            else
+    //            {
+    //                shouldActivateEvent = false;
+    //            }
+    //        }
+    //        if (shouldActivateEvent)
+    //        {
+    //            myChanceEvents[myChanceIndexes[i]].myEvent.Activate();
+    //            //myChanceEvents = myChanceEvents.OrderBy(x => Random.value).ToList();
+    //            return;
+    //        }
+    //    }
+    //}
 
     void ReadNames()
     {
@@ -395,14 +524,36 @@ public class GameHub : MonoBehaviour
             ChanceEvent aChanceEvent = new ChanceEvent();
             Event chanceEvent = factory.CreateEvent(myEvents.Events[i].EventTitle, myEvents.Events[i].EventText);
             myChanceEvents.Add(aChanceEvent);
-            for(int j = 0; j < myEvents.Events[i].buttonResults.Count; j++)
+            for(int j = 0; j < myEvents.Events[i].buttonTexts.Count; j++)
             {
-                if (myEvents.Events[i].HasSecondEvent[j])
+                float totalWeight = 0.0f;
+                ButtonAlternativeResults result = null;
+                if(myEvents.Events[i].myButtonAlternatives.Count != 0)
                 {
-                    Event chanceResultEvent = factory.CreateEvent(myEvents.Events[i].buttonResultEventTitle[j], myEvents.Events[i].buttonResultEventText[j]);
+                    for(int k = 0; k < myEvents.Events[i].myButtonAlternatives.Count; k++)
+                    {
+                        totalWeight += myEvents.Events[i].myButtonAlternatives[j].myButtonResults[k].ResultChanceOfHappening;
+                    }
+                    float randomPoint = Random.Range(0.0f, totalWeight);
+                    float current = 0.0f;
+                    for (int k = 0; k < myEvents.Events[i].myButtonAlternatives.Count; k++)
+                    {
+                        current += myEvents.Events[i].myButtonAlternatives[j].myButtonResults[k].ResultChanceOfHappening;
+                        if(randomPoint <= current)
+                        {
+                            result = myEvents.Events[i].myButtonAlternatives[j].myButtonResults[k];
+                            break;
+                        }
+                    }
+
+                }
+
+                if (result != null)
+                {
+                    Event chanceResultEvent = factory.CreateEvent(result.resultEventTitle, result.resultEventText);
                     chanceResultEvent.SetCanvasAndButton(EventCanvas, EventButton, EventPanel);
                     myChanceEvents[i].myResultEvents.Add(chanceResultEvent);
-                    chanceResultEvent.AddEventDecision(myEvents.Events[i].buttonResultButtonText[j], () =>
+                    chanceResultEvent.AddEventDecision(result.resultButtonText, () =>
                     {
                         chanceResultEvent.DeActivate();
                     });
@@ -411,7 +562,7 @@ public class GameHub : MonoBehaviour
                 int currentJ = j;
                 chanceEvent.AddEventDecision(myEvents.Events[i].buttonTexts[j], () => {
                     myPlayer.ActivateEvent(EventType.Crusade);
-                    if(myEvents.Events[currentI].HasSecondEvent[currentJ])
+                    if(myEvents.Events[currentI].myButtonAlternatives.Count != 0)
                     {
                         myChanceEvents[currentI].myResultEvents[currentJ].Activate();
                     }
@@ -421,28 +572,30 @@ public class GameHub : MonoBehaviour
             chanceEvent.SetCanvasAndButton(EventCanvas, EventButton, EventPanel);
             aChanceEvent.myEvent = chanceEvent;
             aChanceEvent.selectedJobOption = myEvents.Events[i].selectedJobOption;
-            aChanceEvent.DependableJobOption = myEvents.Events[i].DependableJobOption;
-            aChanceEvent.selectedRelationDependable = myEvents.Events[i].selectedRelationDependable;
             aChanceEvent.relationAmount = myEvents.Events[i].relationAmount;
             aChanceEvent.Age = myEvents.Events[i].Age;
-            aChanceEvent.DependableCharacterAge = myEvents.Events[i].DependableCharacterAge;
+            //aChanceEvent.DependableJobOption = myEvents.Events[i].DependableJobOption;
+            //aChanceEvent.selectedRelationDependable = myEvents.Events[i].selectedRelationDependable;
+            //aChanceEvent.DependableCharacterAge = myEvents.Events[i].DependableCharacterAge;
+            //aChanceEvent.DependableCharacterFlag = myEvents.Events[i].DependableCharacterFlag;
+            //aChanceEvent.RelationJobDependant = myEvents.Events[i].RelationJobDependant;
+            //aChanceEvent.RelationAgeDependant = myEvents.Events[i].RelationAgeDependant;
+            //aChanceEvent.myDependableAgeRequierment = myEvents.Events[i].myDependableAgeRequierment;
             aChanceEvent.JobDependant = myEvents.Events[i].JobDependant;
             aChanceEvent.AgeDependant = myEvents.Events[i].AgeDependant;
-            aChanceEvent.DependableCharacterFlag = myEvents.Events[i].DependableCharacterFlag;
-            aChanceEvent.RelationJobDependant = myEvents.Events[i].RelationJobDependant;
-            aChanceEvent.RelationAgeDependant = myEvents.Events[i].RelationAgeDependant;
             aChanceEvent.CanBeGottenAgain = myEvents.Events[i].CanBeGottenAgain;
             aChanceEvent.ChanceOfHappening = myEvents.Events[i].ChanceOfHappening;
             aChanceEvent.EventTitle = myEvents.Events[i].EventTitle;
             aChanceEvent.EventText = myEvents.Events[i].EventText;
             aChanceEvent.buttonTexts = myEvents.Events[i].buttonTexts;
-            aChanceEvent.buttonResults = myEvents.Events[i].buttonResults;
+            //aChanceEvent.buttonResults = myEvents.Events[i].buttonResults;
+            aChanceEvent.myButtonAlternatives = myEvents.Events[i].myButtonAlternatives;
             aChanceEvent.myAgeRequierment = myEvents.Events[i].myAgeRequierment;
-            aChanceEvent.myDependableAgeRequierment = myEvents.Events[i].myDependableAgeRequierment;
             aChanceEvent.socialClass = myEvents.Events[i].socialClass;
             aChanceEvent.IsSocialClassDependant = myEvents.Events[i].IsSocialClassDependant;
             aChanceEvent.IsCharacteristicDependant = myEvents.Events[i].IsCharacteristicDependant;
             aChanceEvent.characteristic = myEvents.Events[i].myChosenCharacteristic;
+            aChanceEvent.dependables = myEvents.Events[i].myDependables;
         }
         for (int i = 0; i < myEvents.Events.Count; i++)
         {

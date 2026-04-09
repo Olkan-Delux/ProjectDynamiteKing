@@ -56,27 +56,43 @@ public class EventManagerWindow : EditorWindow
             {
                 EventEditorWindow window = GetWindow<EventEditorWindow>("Event Editor Window");
                 window.myChosenJobb = mySelectedObject.selectedJobOption;
-                window.myDependableChosenJobb = mySelectedObject.DependableJobOption;
-                //window.selectedRelationOption = mySelectedObject.selectedRelationOption;
-                window.selectedRelationDependable = mySelectedObject.selectedRelationDependable;
                 window.relationAmount = mySelectedObject.relationAmount;
-                window.Age = mySelectedObject.Age;
-                window.DependableCharacterAge = mySelectedObject.DependableCharacterAge;
+                //window.Age = mySelectedObject.Age;
                 window.JobDependant = mySelectedObject.JobDependant;
                 window.AgeDependant = mySelectedObject.AgeDependant;
-                window.DependableCharacterFlag = mySelectedObject.DependableCharacterFlag;
-                window.RelationJobDependant = mySelectedObject.RelationJobDependant;
-                window.RelationAgeDependant = mySelectedObject.RelationAgeDependant;
+                //window.myDependableChosenJobb = mySelectedObject.DependableJobOption;
+                //window.selectedRelationOption = mySelectedObject.selectedRelationOption;
+                //window.selectedRelationDependable = mySelectedObject.selectedRelationDependable;
+                //window.DependableCharacterAge = mySelectedObject.DependableCharacterAge;
+                //window.DependableCharacterFlag = mySelectedObject.DependableCharacterFlag;
+                //window.RelationJobDependant = mySelectedObject.RelationJobDependant;
+                //window.RelationAgeDependant = mySelectedObject.RelationAgeDependant;
+                //window.myDependableAgeRequierment = mySelectedObject.myDependableAgeRequierment;
                 window.CanBeGottenAgain = mySelectedObject.CanBeGottenAgain;
-                window.ChanceOfHappening = mySelectedObject.ChanceOfHappening;
                 window.EventTitle = mySelectedObject.EventTitle;
                 window.EventText = mySelectedObject.EventText;
                 window.buttonTexts = mySelectedObject.buttonTexts;
-                window.buttonResultEventText = mySelectedObject.buttonResultEventText;
-                window.buttonResultEventTitle = mySelectedObject.buttonResultEventTitle;
-                window.buttonResultButtonText = mySelectedObject.buttonResultButtonText;
-                window.buttonResults = mySelectedObject.buttonResults;
+                //window.buttonResults = mySelectedObject.buttonResults;
+                //window.buttonResultEventText = mySelectedObject.buttonResultEventText;
+                //window.buttonResultEventTitle = mySelectedObject.buttonResultEventTitle;
+                //window.buttonResultButtonText = mySelectedObject.buttonResultButtonText;
+                //window.HasSecondEvent = mySelectedObject.HasSecondEvent;
+                window.buttonAlternativeResults = mySelectedObject.myButtonAlternatives;
+                window.myAgeRequierment = mySelectedObject.myAgeRequierment;
+                window.ChanceOfHappening = mySelectedObject.ChanceOfHappening;
                 window.ButtonNumber = mySelectedObject.buttonTexts.Count;
+                window.socialClass = mySelectedObject.socialClass;
+                window.IsSocialClassDependant = mySelectedObject.IsSocialClassDependant;
+                window.IsCharacteristicDependant = mySelectedObject.IsCharacteristicDependant;
+                window.myChosenCharacteristic = mySelectedObject.myChosenCharacteristic;
+                window.myDependables = mySelectedObject.myDependables;
+                string path = AssetDatabase.GetAssetPath(mySelectedObject);
+                if (!string.IsNullOrEmpty(path))
+                {
+                    window.doesExistAlready = true;
+                    window.dataPath = path;
+                    window.selectedIndex = mySelectedIndex;
+                }
 
                 this.Close();
             }

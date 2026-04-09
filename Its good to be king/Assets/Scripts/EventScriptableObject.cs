@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using JetBrains.Annotations;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -13,18 +14,18 @@ public class EventScriptableObject : ScriptableObject
         Exact
     };
     public Jobb selectedJobOption;
-    public Jobb DependableJobOption;
-    public GameHub.RelationType selectedRelationDependable;
+    //public Jobb DependableJobOption;
+    //public GameHub.RelationType selectedRelationDependable;
     public int relationAmount;
     public int Age;
     public AgeRequierment myAgeRequierment;
-    public AgeRequierment myDependableAgeRequierment;
-    public int DependableCharacterAge;
+    //public AgeRequierment myDependableAgeRequierment;
+    //public int DependableCharacterAge;
     public bool JobDependant;
     public bool AgeDependant;
-    public bool DependableCharacterFlag;
-    public bool RelationJobDependant;
-    public bool RelationAgeDependant;
+    //public bool DependableCharacterFlag;
+    //public bool RelationJobDependant;
+    //public bool RelationAgeDependant;
     public bool CanBeGottenAgain;
     public bool IsSocialClassDependant = true;
     public bool IsCharacteristicDependant;
@@ -34,11 +35,12 @@ public class EventScriptableObject : ScriptableObject
 
     public string EventTitle;
     public string EventText;
-    public List<bool> HasSecondEvent;
     public List<string> buttonTexts;
-    public List<string> buttonResultEventText;
-    public List<string> buttonResultEventTitle;
-    public List<string> buttonResultButtonText;
+    public List<ButtonAlternativeResultData> myButtonAlternatives = new List<ButtonAlternativeResultData>();
+    //public List<bool> HasSecondEvent;
+    //public List<string> buttonResultEventText;
+    //public List<string> buttonResultEventTitle;
+    //public List<string> buttonResultButtonText;
 
     public bool RandomizeName = false;
     public bool RandomizeAge = false;
@@ -48,7 +50,27 @@ public class EventScriptableObject : ScriptableObject
     //public GameHub.Job CharacterJob = GameHub.Job.Peasant;
     public GameHub.RelationType CharacterRelation = GameHub.RelationType.Stranger;
 
-    public List<ResultDataRegistry> buttonResults = new List<ResultDataRegistry>();
+    //public List<ResultDataRegistry> buttonResults = new List<ResultDataRegistry>();
+
+    public List<DependableData> myDependables = new List<DependableData>();
+}
+
+[System.Serializable]
+public class ButtonAlternativeResultData
+{
+    public List<ButtonAlternativeResults> myButtonResults = new List<ButtonAlternativeResults>();
+}
+
+[System.Serializable]
+public class ButtonAlternativeResults
+{
+    public float ResultChanceOfHappening = 0.0f;
+    public List<ResultData> results = new List<ResultData>();
+    public string resultEventTitle;
+    public string resultEventText;
+    public string resultButtonText;
+    public Vector2 scrollPosition = new Vector2();
+    public bool shouldBeShown = true;
 }
 
 [System.Serializable]
@@ -71,6 +93,20 @@ public class ResultData
     public GameHub.Gender CharacterGender = GameHub.Gender.Girl;
     public Characteristic characteristic = null;
     public int selectedCharacteristic = 0;
+}
+
+[System.Serializable]
+public class DependableData
+{
+    public int Age = 10;
+    public bool haveOrNotHaveFlag = true;
+    public GameHub.RelationType myRelationType;
+    public EventScriptableObject.AgeRequierment AgeRequierment;
+    public bool JobDependant = false;
+    public bool AgeDependant = false;
+    public Jobb ChosenJobb = null;
+    public int SelectedJob = 0;
+    public int amount = 0;
 }
 
 [System.Serializable]

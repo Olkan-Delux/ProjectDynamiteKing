@@ -1,5 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
+using System.IO;
 using Unity.Jobs.LowLevel.Unsafe;
 using UnityEditor;
 using UnityEngine;
@@ -14,28 +16,28 @@ public class EventEditorWindow : EditorWindow
     EventScriptableObject myAsset;
     EventRegistryScriptableObject myAssetRegistry;
     DataScriptableObject myDataScriptableObject;
-    //public GameHub.Job selectedJobOption = GameHub.Job.Peasant;
-    //public GameHub.Job DependableJobOption = GameHub.Job.Peasant;
     public GameHub.RelationType selectedRelationOption = GameHub.RelationType.Stranger;
-    public GameHub.RelationType selectedRelationDependable = GameHub.RelationType.Stranger;
     public int relationAmount = 1;
     public int Age = 10;
     public EventScriptableObject.AgeRequierment myAgeRequierment;
     public bool JobDependant;
     public bool AgeDependant;
-    public int DependableCharacterAge = 10;
-    public EventScriptableObject.AgeRequierment myDependableAgeRequierment;
     public bool DependableCharacterFlag = false;
-    public bool RelationJobDependant = false;
-    public bool RelationAgeDependant = false;
+    //public GameHub.Job selectedJobOption = GameHub.Job.Peasant;
+    //public GameHub.Job DependableJobOption = GameHub.Job.Peasant;
+    //public GameHub.RelationType selectedRelationDependable = GameHub.RelationType.Stranger;
+    //public int DependableCharacterAge = 10;
+    //public EventScriptableObject.AgeRequierment myDependableAgeRequierment;
+    //public bool RelationJobDependant = false;
+    //public bool RelationAgeDependant = false;
+    //public int myDependableSelectedJob = 0;
+    //public Jobb myDependableChosenJobb = null;
     public bool CanBeGottenAgain = false;
     public bool IsSocialClassDependant = true;
     public bool IsCharacteristicDependant = false;
     public Characteristic myChosenCharacteristic = null;
     public int mySelectedCharacteristic = 0;
     public Jobb myChosenJobb = null;
-    public Jobb myDependableChosenJobb = null;
-    public int myDependableSelectedJob = 0;
     public int mySelectedJobb = 0;
 
     public float ChanceOfHappening = 0.0f;
@@ -43,13 +45,27 @@ public class EventEditorWindow : EditorWindow
 
     public string EventTitle = "";
     public string EventText = "";
-    public List<bool> HasSecondEvent = new List<bool>();
+    //public List<bool> HasSecondEvent = new List<bool>();
     public List<string> buttonTexts = new List<string>();
-    public List<string> buttonResultEventText = new List<string>();
-    public List<string> buttonResultEventTitle = new List<string>();
-    public List<string> buttonResultButtonText = new List<string>();
-    public List<ResultDataRegistry> buttonResults = new List<ResultDataRegistry>();
+    //public List<string> buttonResultEventText = new List<string>();
+    //public List<string> buttonResultEventTitle = new List<string>();
+    //public List<string> buttonResultButtonText = new List<string>();
+    //public List<ResultDataRegistry> buttonResults = new List<ResultDataRegistry>();
+    public List<ButtonAlternativeResultData> buttonAlternativeResults = new List<ButtonAlternativeResultData>();
+    private List<Vector2> resultScrollPositions = new List<Vector2>();
     public int ButtonNumber = 0;
+
+    public List<DependableData> myDependables = new List<DependableData>();
+
+    public bool doesExistAlready = false;
+    public string dataPath = "";
+    public int selectedIndex = 0;
+
+    private bool alreadyExists = false;
+
+    //private Vector2 buttonScrollPos;
+    private Vector2 dependableScrollPos;
+
 
 
 
@@ -84,11 +100,13 @@ public class EventEditorWindow : EditorWindow
             {
                 ButtonNumber++;
                 buttonTexts.Add("");
-                buttonResultEventText.Add("");
-                buttonResultEventTitle.Add("");
-                buttonResultButtonText.Add("");
-                HasSecondEvent.Add(false);
-                buttonResults.Add(new ResultDataRegistry());
+                buttonAlternativeResults.Add(new ButtonAlternativeResultData());
+                //buttonAlternativeResults.Add(new ButtonAlternativeResults());
+                //buttonResultEventText.Add("");
+                //buttonResultEventTitle.Add("");
+                //buttonResultButtonText.Add("");
+                //HasSecondEvent.Add(false);
+                //buttonResults.Add(new ResultDataRegistry());
             }
         }
         for(int i = 0; i < ButtonNumber; i++)
@@ -160,14 +178,15 @@ public class EventEditorWindow : EditorWindow
         EditorGUILayout.EndVertical();
 
         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-        EditorGUILayout.BeginHorizontal();
-        EditorGUILayout.LabelField("Event requires other relation");
-        DependableCharacterFlag = EditorGUILayout.Toggle(DependableCharacterFlag);
-        EditorGUILayout.EndHorizontal();
-        if (DependableCharacterFlag)
-        {
-            IsCharacterDependant();
-        }
+        CharacterDependables();
+        //EditorGUILayout.BeginHorizontal();
+        //EditorGUILayout.LabelField("Event requires other relation");
+        //DependableCharacterFlag = EditorGUILayout.Toggle(DependableCharacterFlag);
+        //EditorGUILayout.EndHorizontal();
+        //if (DependableCharacterFlag)
+        //{
+        //    IsCharacterDependant();
+        //}
         EditorGUILayout.EndVertical();
 
         Color oldColor = GUI.backgroundColor;
@@ -176,6 +195,35 @@ public class EventEditorWindow : EditorWindow
         {
             myAssetRegistry = AssetDatabase.LoadAssetAtPath<EventRegistryScriptableObject>(RegistryAssetPath);
 
+            if (doesExistAlready)
+            {
+                AssetDatabase.DeleteAsset(dataPath);
+                AssetDatabase.SaveAssets();
+                AssetDatabase.Refresh();
+                Debug.Log("Deleted: " + dataPath);
+                myAssetRegistry.Events.RemoveAt(selectedIndex);
+            }
+            else
+            {
+                alreadyExists = false;
+                for (int i = 0; i < myAssetRegistry.Events.Count; i++)
+                {
+                    if (myAssetRegistry.Events[i].EventTitle == EventTitle)
+                    {
+                        alreadyExists = true;
+                        break;
+                    }
+                }
+            }
+
+            if(alreadyExists || ChanceOfHappening == 0 || buttonTexts.Count == 0)
+            {
+                EditorUtility.DisplayDialog("Error!","Either this event already exists, or the chance of it happening is zero, or there isnt a result button \n " +
+                                            "Im not gonna find that out for you though :-/", "I will change this");
+                return;
+            }
+
+
             assetPath = AssetDatabase.GenerateUniqueAssetPath(OriginalAssetPath);
             myAsset = ScriptableObject.CreateInstance<EventScriptableObject>();
             AssetDatabase.CreateAsset(myAsset, assetPath);
@@ -183,31 +231,33 @@ public class EventEditorWindow : EditorWindow
             Debug.Log("Created new MyEditorData asset at " + assetPath);
 
             myAsset.selectedJobOption = myChosenJobb;
-            myAsset.DependableJobOption = myDependableChosenJobb;
-            myAsset.selectedRelationDependable = selectedRelationDependable;
             myAsset.relationAmount = relationAmount;
-            myAsset.DependableCharacterAge = DependableCharacterAge;
+            //myAsset.DependableJobOption = myDependableChosenJobb;
+            //myAsset.selectedRelationDependable = selectedRelationDependable;
+            //myAsset.DependableCharacterAge = DependableCharacterAge;
+            //myAsset.DependableCharacterFlag = DependableCharacterFlag;
+            //myAsset.RelationJobDependant = RelationJobDependant;
+            //myAsset.RelationAgeDependant = RelationAgeDependant;
             myAsset.JobDependant = JobDependant;
             myAsset.AgeDependant = AgeDependant;
-            myAsset.DependableCharacterFlag = DependableCharacterFlag;
-            myAsset.RelationJobDependant = RelationJobDependant;
-            myAsset.RelationAgeDependant = RelationAgeDependant;
             myAsset.CanBeGottenAgain = CanBeGottenAgain;
             myAsset.EventTitle = EventTitle;
             myAsset.EventText = EventText;
             myAsset.buttonTexts = buttonTexts;
-            myAsset.buttonResults = buttonResults;
-            myAsset.buttonResultEventTitle = buttonResultEventTitle;
-            myAsset.buttonResultEventText = buttonResultEventText;
-            myAsset.buttonResultButtonText = buttonResultButtonText;
+            //myAsset.buttonResults = buttonResults;
+            //myAsset.buttonResultEventTitle = buttonResultEventTitle;
+            //myAsset.buttonResultEventText = buttonResultEventText;
+            //myAsset.buttonResultButtonText = buttonResultButtonText;
+            //myAsset.myDependableAgeRequierment = myDependableAgeRequierment;
+            //myAsset.HasSecondEvent = HasSecondEvent;
+            myAsset.myButtonAlternatives = buttonAlternativeResults;
             myAsset.myAgeRequierment = myAgeRequierment;
-            myAsset.myDependableAgeRequierment = myDependableAgeRequierment;
             myAsset.ChanceOfHappening = ChanceOfHappening;
-            myAsset.HasSecondEvent = HasSecondEvent;
             myAsset.socialClass = socialClass;  
             myAsset.IsSocialClassDependant = IsSocialClassDependant;  
             myAsset.IsCharacteristicDependant = IsCharacteristicDependant;
             myAsset.myChosenCharacteristic = myChosenCharacteristic;
+            myAsset.myDependables = myDependables;
 
             myAssetRegistry.Events.Add(myAsset);
             EditorUtility.SetDirty(myAssetRegistry);
@@ -215,34 +265,37 @@ public class EventEditorWindow : EditorWindow
             AssetDatabase.SaveAssets();
 
             myChosenJobb = null;
-            myDependableChosenJobb = null;
+            //myDependableChosenJobb = null;
             mySelectedJobb = 0;
-            myDependableSelectedJob = 0;
+            //myDependableSelectedJob = 0;
             myChosenCharacteristic = null;
             IsCharacteristicDependant = false;
             socialClass = GameHub.SocialClass.Commoner;
             selectedRelationOption = GameHub.RelationType.Stranger;
-            selectedRelationDependable = GameHub.RelationType.Stranger;
+            //selectedRelationDependable = GameHub.RelationType.Stranger;
             relationAmount = 1;
             JobDependant = false;
             AgeDependant = false;
             DependableCharacterFlag = false;
-            RelationJobDependant = false;
-            RelationAgeDependant = false;
+            //RelationJobDependant = false;
+            //RelationAgeDependant = false;
             CanBeGottenAgain = false;
-            DependableCharacterAge = 10;
+            doesExistAlready = false;
+            //DependableCharacterAge = 10;
             ChanceOfHappening = 0f;
             Age = 10;
             EventTitle = "";
             EventText = "";
             buttonTexts.Clear();
-            buttonResults.Clear();
-            buttonResultEventText.Clear();
-            buttonResultEventTitle.Clear();
-            buttonResultButtonText.Clear();
-            HasSecondEvent.Clear();
+            buttonAlternativeResults.Clear();
+            //buttonResults.Clear();
+            //buttonResultEventText.Clear();
+            //buttonResultEventTitle.Clear();
+            //buttonResultButtonText.Clear();
+            //HasSecondEvent.Clear();
+            myDependables.Clear();
             ButtonNumber = 0;
-
+            alreadyExists = false;
         }
         GUI.backgroundColor = oldColor;
     }
@@ -251,180 +304,258 @@ public class EventEditorWindow : EditorWindow
     {
         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
         buttonTexts[buttonIndex] = EditorGUILayout.TextField("Button Text:", buttonTexts[buttonIndex]);
-        HasSecondEvent[buttonIndex] = EditorGUILayout.Toggle("Has Result Event:", HasSecondEvent[buttonIndex]);
-        if(HasSecondEvent[buttonIndex])
-        {
-            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-            buttonResultEventText[buttonIndex] = EditorGUILayout.TextField("Result Event Title:", buttonResultEventText[buttonIndex]);
-            buttonResultEventTitle[buttonIndex] = EditorGUILayout.TextField("Result Event Text:", buttonResultEventTitle[buttonIndex]);
-            buttonResultButtonText[buttonIndex] = EditorGUILayout.TextField("Result Event Button Text:", buttonResultButtonText[buttonIndex]);
-            EditorGUILayout.EndVertical();
-        }
         Color oldColor = GUI.backgroundColor;
-        if (GUILayout.Button("Add Result"))
+        if (GUILayout.Button("Add Button Result"))
         {
-            buttonResults[buttonIndex].results.Add(new ResultData());
+            buttonAlternativeResults[buttonIndex].myButtonResults.Add(new ButtonAlternativeResults());
+            //resultScrollPositions.Add(new Vector2());
         }
-        for(int i = 0; i < buttonResults[buttonIndex].results.Count; i++)
+
+        EditorGUILayout.LabelField("Button Results");
+        for (int y = 0; y < buttonAlternativeResults[buttonIndex].myButtonResults.Count; y++)
         {
-            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-            GUILayout.Label("Result nr: " + (i+1).ToString());
-            buttonResults[buttonIndex].results[i].myResult = (GameHub.EventResult)EditorGUILayout.EnumPopup("Result Type:", buttonResults[buttonIndex].results[i].myResult);
-            switch(buttonResults[buttonIndex].results[i].myResult)
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("Result: " + buttonAlternativeResults[buttonIndex].myButtonResults[y].resultEventTitle);
+            buttonAlternativeResults[buttonIndex].myButtonResults[y].shouldBeShown = EditorGUILayout.Toggle("Show", buttonAlternativeResults[buttonIndex].myButtonResults[y].shouldBeShown);
+            EditorGUILayout.EndHorizontal();
+            if (buttonAlternativeResults[buttonIndex].myButtonResults[y].shouldBeShown)
             {
-                case GameHub.EventResult.Death:
+                buttonAlternativeResults[buttonIndex].myButtonResults[y].scrollPosition = EditorGUILayout.BeginScrollView(buttonAlternativeResults[buttonIndex].myButtonResults[y].scrollPosition);
+                EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                buttonAlternativeResults[buttonIndex].myButtonResults[y].ResultChanceOfHappening = EditorGUILayout.Slider("Chance of happening:", buttonAlternativeResults[buttonIndex].myButtonResults[y].ResultChanceOfHappening, 0, 100);
+                buttonAlternativeResults[buttonIndex].myButtonResults[y].resultEventTitle = EditorGUILayout.TextField("Result Event Title:", buttonAlternativeResults[buttonIndex].myButtonResults[y].resultEventTitle);
+                buttonAlternativeResults[buttonIndex].myButtonResults[y].resultEventText = EditorGUILayout.TextField("Result Event Text:", buttonAlternativeResults[buttonIndex].myButtonResults[y].resultEventText);
+                buttonAlternativeResults[buttonIndex].myButtonResults[y].resultButtonText = EditorGUILayout.TextField("Result Event Button Text:", buttonAlternativeResults[buttonIndex].myButtonResults[y].resultButtonText);
+                EditorGUILayout.EndVertical();
+                if (GUILayout.Button("Add Result"))
+                {
+                    buttonAlternativeResults[buttonIndex].myButtonResults[y].results.Add(new ResultData());
+                }
+                for (int i = 0; i < buttonAlternativeResults[buttonIndex].myButtonResults[y].results.Count; i++)
+                {
+                    EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                    GUILayout.Label("Result nr: " + (i + 1).ToString());
+                    buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].myResult = (GameHub.EventResult)EditorGUILayout.EnumPopup("Result Type:", buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].myResult);
+                    switch (buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].myResult)
                     {
-                        buttonResults[buttonIndex].results[i].myRelationType = (GameHub.RelationType)EditorGUILayout.EnumPopup("Relation To Die:", buttonResults[buttonIndex].results[i].myRelationType);
-                        break;
-                    }
-                case GameHub.EventResult.Money:
-                    {
-                        buttonResults[buttonIndex].results[i].myMoney = EditorGUILayout.IntSlider("Money Gotten:", buttonResults[buttonIndex].results[i].myMoney, -1000000, 1000000);
-                        break;
-                    }
-                case GameHub.EventResult.Income:
-                    {
-                        buttonResults[buttonIndex].results[i].myMoney = EditorGUILayout.IntSlider("Income Gotten:", buttonResults[buttonIndex].results[i].myMoney, -10000, 10000);
-                        break;
-                    }
-                case GameHub.EventResult.Land:
-                    {
-                        break;
-                    }
-                case GameHub.EventResult.Job:
-                    {
-                        if (myDataScriptableObject.Jobbs.Count > 0)
-                        {
-                            string[] jobs = myDataScriptableObject.Jobbs.ConvertAll(p => p.myJob).ToArray();
-                            buttonResults[buttonIndex].results[i].selectedJob = EditorGUILayout.Popup(buttonResults[buttonIndex].results[i].selectedJob, jobs);
-                            buttonResults[buttonIndex].results[i].myJob = myDataScriptableObject.Jobbs[myDependableSelectedJob];
-                        }
-                        else
-                        {
-                            EditorGUILayout.LabelField("There are no Jobs currently. Please check the variable editor");
-                        }
-                        break;
-                    }
-                case GameHub.EventResult.Character:
-                    {
-                        GUILayout.Label("Character Creation");
-                        EditorGUILayout.BeginHorizontal();
-                        buttonResults[buttonIndex].results[i].ShouldHaveJob = EditorGUILayout.Toggle("Should Have job", buttonResults[buttonIndex].results[i].ShouldHaveJob);
-                        if(buttonResults[buttonIndex].results[i].ShouldHaveJob)
-                        {
-                            buttonResults[buttonIndex].results[i].RandomizeJob = EditorGUILayout.Toggle("Randomize Job", buttonResults[buttonIndex].results[i].RandomizeJob);
-                            if(buttonResults[buttonIndex].results[i].RandomizeJob == false)
+                        case GameHub.EventResult.Death:
+                            {
+                                buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].myRelationType = (GameHub.RelationType)EditorGUILayout.EnumPopup("Relation To Die:", buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].myRelationType);
+                                break;
+                            }
+                        case GameHub.EventResult.Money:
+                            {
+                                buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].myMoney = EditorGUILayout.IntSlider("Money Gotten:", buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].myMoney, -1000000, 1000000);
+                                break;
+                            }
+                        case GameHub.EventResult.Income:
+                            {
+                                buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].myMoney = EditorGUILayout.IntSlider("Income Gotten:", buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].myMoney, -10000, 10000);
+                                break;
+                            }
+                        case GameHub.EventResult.Land:
+                            {
+                                break;
+                            }
+                        case GameHub.EventResult.Job:
                             {
                                 if (myDataScriptableObject.Jobbs.Count > 0)
                                 {
                                     string[] jobs = myDataScriptableObject.Jobbs.ConvertAll(p => p.myJob).ToArray();
-                                    buttonResults[buttonIndex].results[i].selectedJob = EditorGUILayout.Popup(buttonResults[buttonIndex].results[i].selectedJob, jobs);
-                                    buttonResults[buttonIndex].results[i].myJob = myDataScriptableObject.Jobbs[myDependableSelectedJob];
+                                    buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].selectedJob = EditorGUILayout.Popup(buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].selectedJob, jobs);
+                                    buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].myJob = myDataScriptableObject.Jobbs[buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].selectedJob];
                                 }
                                 else
                                 {
                                     EditorGUILayout.LabelField("There are no Jobs currently. Please check the variable editor");
                                 }
+                                break;
                             }
-                        }
-                        EditorGUILayout.EndHorizontal();
-                        EditorGUILayout.BeginHorizontal();
-                        buttonResults[buttonIndex].results[i].RandomizeAge = EditorGUILayout.Toggle("Randomize Age", buttonResults[buttonIndex].results[i].RandomizeAge);
-                        if(buttonResults[buttonIndex].results[i].RandomizeAge == false)
-                        {
-                            buttonResults[buttonIndex].results[i].CharacterAge = EditorGUILayout.IntSlider("Age:", buttonResults[buttonIndex].results[i].CharacterAge, 0, 100);
-                        }
-                        EditorGUILayout.EndHorizontal();
-                        EditorGUILayout.BeginHorizontal();
-                        buttonResults[buttonIndex].results[i].CharacterRelation = (GameHub.RelationType)EditorGUILayout.EnumPopup("Relation Type:", buttonResults[buttonIndex].results[i].CharacterRelation);
-                        EditorGUILayout.EndHorizontal();
-                        EditorGUILayout.BeginHorizontal();
+                        case GameHub.EventResult.Character:
+                            {
+                                GUILayout.Label("Character Creation");
+                                EditorGUILayout.BeginHorizontal();
+                                buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].ShouldHaveJob = EditorGUILayout.Toggle("Should Have job", buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].ShouldHaveJob);
+                                if (buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].ShouldHaveJob)
+                                {
+                                    buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].RandomizeJob = EditorGUILayout.Toggle("Randomize Job", buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].RandomizeJob);
+                                    if (buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].RandomizeJob == false)
+                                    {
+                                        if (myDataScriptableObject.Jobbs.Count > 0)
+                                        {
+                                            string[] jobs = myDataScriptableObject.Jobbs.ConvertAll(p => p.myJob).ToArray();
+                                            buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].selectedJob = EditorGUILayout.Popup(buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].selectedJob, jobs);
+                                            buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].myJob = myDataScriptableObject.Jobbs[buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].selectedJob];
+                                        }
+                                        else
+                                        {
+                                            EditorGUILayout.LabelField("There are no Jobs currently. Please check the variable editor");
+                                        }
+                                    }
+                                }
+                                EditorGUILayout.EndHorizontal();
+                                EditorGUILayout.BeginHorizontal();
+                                buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].RandomizeAge = EditorGUILayout.Toggle("Randomize Age", buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].RandomizeAge);
+                                if (buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].RandomizeAge == false)
+                                {
+                                    buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].CharacterAge = EditorGUILayout.IntSlider("Age:", buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].CharacterAge, 0, 100);
+                                }
+                                EditorGUILayout.EndHorizontal();
+                                EditorGUILayout.BeginHorizontal();
+                                buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].CharacterRelation = (GameHub.RelationType)EditorGUILayout.EnumPopup("Relation Type:", buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].CharacterRelation);
+                                EditorGUILayout.EndHorizontal();
+                                EditorGUILayout.BeginHorizontal();
 
-                        buttonResults[buttonIndex].results[i].RandomizeGender = EditorGUILayout.Toggle("Randomize Gender", buttonResults[buttonIndex].results[i].RandomizeGender);
-                        buttonResults[buttonIndex].results[i].OppositeGender = EditorGUILayout.Toggle("Is Opposite Gender of Player", buttonResults[buttonIndex].results[i].OppositeGender);
-                        if(buttonResults[buttonIndex].results[i].RandomizeGender == false && buttonResults[buttonIndex].results[i].OppositeGender == false)
-                        {
-                            buttonResults[buttonIndex].results[i].CharacterGender = (GameHub.Gender)EditorGUILayout.EnumPopup("Character Gender:", buttonResults[buttonIndex].results[i].CharacterGender);
-                        }
-                        EditorGUILayout.EndHorizontal();
+                                buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].RandomizeGender = EditorGUILayout.Toggle("Randomize Gender", buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].RandomizeGender);
+                                buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].OppositeGender = EditorGUILayout.Toggle("Is Opposite Gender of Player", buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].OppositeGender);
+                                if (buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].RandomizeGender == false && buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].OppositeGender == false)
+                                {
+                                    buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].CharacterGender = (GameHub.Gender)EditorGUILayout.EnumPopup("Character Gender:", buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].CharacterGender);
+                                }
+                                EditorGUILayout.EndHorizontal();
 
-                        break;
+                                break;
+                            }
+                        case GameHub.EventResult.Characteristic:
+                            {
+                                if (myDataScriptableObject.characteristics.Count > 0)
+                                {
+                                    EditorGUILayout.BeginHorizontal();
+                                    EditorGUILayout.LabelField("Add characteristic to Player");
+                                    string[] characteristics = myDataScriptableObject.characteristics.ConvertAll(p => p.myCharacteristic).ToArray();
+                                    buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].selectedCharacteristic = EditorGUILayout.Popup(buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].selectedCharacteristic, characteristics);
+                                    buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].characteristic = myDataScriptableObject.characteristics[buttonAlternativeResults[buttonIndex].myButtonResults[y].results[i].selectedCharacteristic];
+                                    EditorGUILayout.EndHorizontal();
+                                }
+                                else
+                                {
+                                    EditorGUILayout.LabelField("There are no characteristics currently. Please check the variable editor");
+                                }
+                                break;
+                            }
                     }
-                case GameHub.EventResult.Characteristic:
+                    GUI.backgroundColor = Color.red;
+                    if (GUILayout.Button("Remove Result"))
                     {
-                        if (myDataScriptableObject.characteristics.Count > 0)
-                        {
-                            EditorGUILayout.BeginHorizontal();
-                            EditorGUILayout.LabelField("Add characteristic to Player");
-                            string[] characteristics = myDataScriptableObject.characteristics.ConvertAll(p => p.myCharacteristic).ToArray();
-                            buttonResults[buttonIndex].results[i].selectedCharacteristic = EditorGUILayout.Popup(buttonResults[buttonIndex].results[i].selectedCharacteristic, characteristics);
-                            buttonResults[buttonIndex].results[i].characteristic = myDataScriptableObject.characteristics[buttonResults[buttonIndex].results[i].selectedCharacteristic];
-                            EditorGUILayout.EndHorizontal();
-                        }
-                        else
-                        {
-                            EditorGUILayout.LabelField("There are no characteristics currently. Please check the variable editor");
-                        }
-                        break;
+                        buttonAlternativeResults[buttonIndex].myButtonResults[y].results.RemoveAt(i);
                     }
+                    GUI.backgroundColor = oldColor;
+                    EditorGUILayout.EndVertical();
+                }
+                EditorGUILayout.EndScrollView();
+                GUI.backgroundColor = Color.red;
+                if (GUILayout.Button("Remove Button Result"))
+                {
+                    buttonAlternativeResults.RemoveAt(buttonIndex);
+                    //resultScrollPositions.RemoveAt(y);
+                }
+                GUI.backgroundColor = oldColor;
             }
-            GUI.backgroundColor = Color.red;
-            if (GUILayout.Button("Remove Result"))
-            {
-                buttonResults[buttonIndex].results.RemoveAt(i);
-            }
-            GUI.backgroundColor = oldColor;
-            EditorGUILayout.EndVertical();
         }
-
+       
 
         GUI.backgroundColor = Color.red;
         if(GUILayout.Button("Remove Button"))
         {
             buttonTexts.RemoveAt(buttonIndex);
-            buttonResults.RemoveAt(buttonIndex);
-            buttonResultButtonText.RemoveAt(buttonIndex);
-            buttonResultEventTitle.RemoveAt(buttonIndex);
-            buttonResultEventText.RemoveAt(buttonIndex);
-            HasSecondEvent.RemoveAt(buttonIndex);
+            buttonAlternativeResults.RemoveAt(buttonIndex);
             ButtonNumber--;
         }
         GUI.backgroundColor = oldColor;
         EditorGUILayout.EndVertical();
     }
 
-    void IsCharacterDependant()
+    //void IsCharacterDependant()
+    //{
+    //    EditorGUILayout.BeginHorizontal();
+
+    //    selectedRelationDependable = (GameHub.RelationType)EditorGUILayout.EnumPopup("Dependable Character:", selectedRelationDependable);
+    //    relationAmount = EditorGUILayout.IntSlider("Amount:", relationAmount, 1, 10, GUILayout.Width(200));
+
+    //    EditorGUILayout.EndHorizontal();
+    //    EditorGUILayout.BeginHorizontal();
+
+    //    RelationAgeDependant = EditorGUILayout.Toggle("Age Dependant:", RelationAgeDependant);
+    //    if (RelationAgeDependant)
+    //    {
+    //        DependableCharacterAge = EditorGUILayout.IntSlider("Dependable Age:", DependableCharacterAge, 0, 100);
+    //        myDependableAgeRequierment = (EventScriptableObject.AgeRequierment)EditorGUILayout.EnumPopup("Dependable Age Requierment:", myDependableAgeRequierment);
+    //    }
+    //    EditorGUILayout.EndHorizontal();
+    //    EditorGUILayout.BeginHorizontal();
+    //    RelationJobDependant = EditorGUILayout.Toggle("Job Dependant:", RelationJobDependant);
+    //    if (RelationJobDependant)
+    //    {
+    //        if (myDataScriptableObject.Jobbs.Count > 0)
+    //        {
+    //            string[] jobs = myDataScriptableObject.Jobbs.ConvertAll(i => i.myJob).ToArray();
+    //            myDependableSelectedJob = EditorGUILayout.Popup(myDependableSelectedJob, jobs);
+    //            myDependableChosenJobb = myDataScriptableObject.Jobbs[myDependableSelectedJob];
+    //        }
+    //        else
+    //        {
+    //            EditorGUILayout.LabelField("There are no Jobs currently. Please check the variable editor");
+    //        }
+    //    }
+    //    EditorGUILayout.EndHorizontal();
+    //}
+
+    void CharacterDependables()
     {
-        EditorGUILayout.BeginHorizontal();
-
-        selectedRelationDependable = (GameHub.RelationType)EditorGUILayout.EnumPopup("Dependable Character:", selectedRelationDependable);
-        relationAmount = EditorGUILayout.IntSlider("Amount:", relationAmount, 1, 10, GUILayout.Width(200));
-
-        EditorGUILayout.EndHorizontal();
-        EditorGUILayout.BeginHorizontal();
-
-        RelationAgeDependant = EditorGUILayout.Toggle("Age Dependant:", RelationAgeDependant);
-        if (RelationAgeDependant)
+        if(GUILayout.Button("Add Dependable Character"))
         {
-            DependableCharacterAge = EditorGUILayout.IntSlider("Dependable Age:", DependableCharacterAge, 0, 100);
-            myDependableAgeRequierment = (EventScriptableObject.AgeRequierment)EditorGUILayout.EnumPopup("Dependable Age Requierment:", myDependableAgeRequierment);
+            myDependables.Add(new DependableData());
         }
-        EditorGUILayout.EndHorizontal();
-        EditorGUILayout.BeginHorizontal();
-        RelationJobDependant = EditorGUILayout.Toggle("Job Dependant:", RelationJobDependant);
-        if (RelationJobDependant)
+        dependableScrollPos = EditorGUILayout.BeginScrollView(dependableScrollPos);
+        for (int i = 0; i < myDependables.Count; i++)
         {
-            if (myDataScriptableObject.Jobbs.Count > 0)
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            
+            EditorGUILayout.BeginHorizontal();
+
+            myDependables[i].myRelationType = (GameHub.RelationType)EditorGUILayout.EnumPopup("Dependable Relation:", myDependables[i].myRelationType);
+            myDependables[i].amount = EditorGUILayout.IntSlider("Amount:", myDependables[i].amount, 1, 10, GUILayout.Width(200));
+            
+
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("Toggle On if Character needs to exist, Off if it needs to not exist:");
+            myDependables[i].haveOrNotHaveFlag = EditorGUILayout.Toggle("", myDependables[i].haveOrNotHaveFlag);
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.BeginHorizontal();
+
+            myDependables[i].AgeDependant = EditorGUILayout.Toggle("Age Dependant:", myDependables[i].AgeDependant);
+            if (myDependables[i].AgeDependant)
             {
-                string[] jobs = myDataScriptableObject.Jobbs.ConvertAll(i => i.myJob).ToArray();
-                myDependableSelectedJob = EditorGUILayout.Popup(myDependableSelectedJob, jobs);
-                myDependableChosenJobb = myDataScriptableObject.Jobbs[myDependableSelectedJob];
+                myDependables[i].Age = EditorGUILayout.IntSlider("Dependable Age:", myDependables[i].Age, 0, 100);
+                myDependables[i].AgeRequierment = (EventScriptableObject.AgeRequierment)EditorGUILayout.EnumPopup("Dependable Age Requierment:", myDependables[i].AgeRequierment);
             }
-            else
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.BeginHorizontal();
+            myDependables[i].JobDependant = EditorGUILayout.Toggle("Job Dependant:", myDependables[i].JobDependant);
+            if (myDependables[i].JobDependant)
             {
-                EditorGUILayout.LabelField("There are no Jobs currently. Please check the variable editor");
+                if (myDataScriptableObject.Jobbs.Count > 0)
+                {
+                    string[] jobs = myDataScriptableObject.Jobbs.ConvertAll(y => y.myJob).ToArray();
+                    myDependables[i].SelectedJob = EditorGUILayout.Popup(myDependables[i].SelectedJob, jobs);
+                    myDependables[i].ChosenJobb = myDataScriptableObject.Jobbs[myDependables[i].SelectedJob];
+                }
+                else
+                {
+                    EditorGUILayout.LabelField("There are no Jobs currently. Please check the variable editor");
+                }
             }
+            EditorGUILayout.EndHorizontal();
+            Color oldColor = GUI.backgroundColor;
+            GUI.backgroundColor = Color.red;
+            if (GUILayout.Button("Remove Dependable"))
+            {
+                myDependables.RemoveAt(i);
+            }
+            GUI.backgroundColor = oldColor;
+            EditorGUILayout.EndVertical();
         }
-        EditorGUILayout.EndHorizontal();
+        EditorGUILayout.EndScrollView();
     }
 }
