@@ -446,7 +446,7 @@ public class EventEditorWindow : EditorWindow
                 GUI.backgroundColor = Color.red;
                 if (GUILayout.Button("Remove Button Result"))
                 {
-                    buttonAlternativeResults.RemoveAt(buttonIndex);
+                    buttonAlternativeResults[buttonIndex].myButtonResults.RemoveAt(y);
                     //resultScrollPositions.RemoveAt(y);
                 }
                 GUI.backgroundColor = oldColor;

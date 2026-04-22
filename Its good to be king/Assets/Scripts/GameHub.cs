@@ -69,29 +69,6 @@ public class GameHub : MonoBehaviour
         Boy,
         Girl
     };
-    //public enum Job
-    //{
-    //    Peasant,
-    //    Smith,
-    //    Fisher,
-    //    Baker,
-    //    ShoeMaker,
-    //    Carpenter,
-    //    Merchant,
-    //    Hunter,
-    //    Miner,
-    //    Mercenary,
-    //    Guard,
-    //    Sailor,
-    //    Soldier,
-    //    Monk,
-    //    Priest,
-    //    Bishop,
-    //    Knight,
-    //    Noblemen,
-    //    Nothing,
-    //    King,
-    //};
 
     public enum LandMark
     {
@@ -308,7 +285,7 @@ public class GameHub : MonoBehaviour
         return !e.JobDependant || player.myJob.myJob == e.selectedJobOption.myJob;
     }
     private bool CheckAge(ChanceEvent e, Character player)
-    {
+    { 
         if (!e.AgeDependant) return true;
 
         switch (e.myAgeRequierment)
