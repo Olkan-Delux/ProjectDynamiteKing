@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 99b5d42f537f1bf40a82ad4d5e6fb31f, type: 3}
-  m_Name: EventScriptableObject
+  m_Name: EventScriptableObject 60
   m_EditorClassIdentifier: 
   selectedJobOption:
     myJob: 
@@ -25,9 +25,9 @@ MonoBehaviour:
     deathChanceIncrease: 0
   relationAmount: 1
   Age: 0
-  myAgeRequierment: 1
+  myAgeRequierment: 0
   JobDependant: 0
-  AgeDependant: 1
+  AgeDependant: 0
   CanBeGottenAgain: 0
   IsSocialClassDependant: 1
   IsCharacteristicDependant: 0
@@ -37,24 +37,18 @@ MonoBehaviour:
     myDevelopmentChance: 0
   ChanceOfHappening: 1
   socialClass: 1
-  EventTitle: Play in the woods
-  EventText: Your mother has warned you not to play in the woods alone
+  EventTitle: Harsh winter
+  EventText: The winter has been harsher than usual this year, as such a lot of families
+    are without food or pay
   buttonTexts:
-  - Ignore her
-  - Listen to her
+  - Give some money (50 kopper)
+  - Keep the money
   myButtonAlternatives:
   - myButtonResults:
-    - ResultChanceOfHappening: 1
-      results: []
-      resultEventTitle: Thrall
-      resultEventText: While out in the woods you get kidnapped and sold as a thrall
-      resultButtonText: Oh no!
-      scrollPosition: {x: 0, y: 0}
-      shouldBeShown: 1
-    - ResultChanceOfHappening: 0
+    - ResultChanceOfHappening: 100
       results:
-      - myResult: 0
-        myMoney: 0
+      - myResult: 1
+        myMoney: -50
         myRelationType: 0
         myJob:
           myJob: 
@@ -82,10 +76,10 @@ MonoBehaviour:
           myInheritanceChance: 0
           myDevelopmentChance: 0
         selectedCharacteristic: 0
-      resultEventTitle: Bear Attack!
-      resultEventText: While out in the woods you stumble upon a large bear that
-        attacks you!
-      resultButtonText: Oh no!
+      resultEventTitle: Harsh winter button 1
+      resultEventText: Thanks to you and equally kind villagers some families surived
+        through the winter
+      resultButtonText: We do what we can
       scrollPosition: {x: 0, y: 0}
       shouldBeShown: 1
   - myButtonResults: []

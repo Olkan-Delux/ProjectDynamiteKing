@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 99b5d42f537f1bf40a82ad4d5e6fb31f, type: 3}
-  m_Name: EventScriptableObject 27
+  m_Name: EventScriptableObject 61
   m_EditorClassIdentifier: 
   selectedJobOption:
     myJob: 
@@ -23,28 +23,11 @@ MonoBehaviour:
     IsVisibleInJobMenu: 0
     CanCharactersRandomlyGet: 0
     deathChanceIncrease: 0
-  DependableJobOption:
-    myJob: 
-    myBaseLowSalary: 0
-    myBaseHighSalary: 0
-    myAcceptanceRate: 0
-    HasSequenceJob: 0
-    canGetPromoted: 0
-    MyYearsTilPromotion: 0
-    IsVisibleInJobMenu: 0
-    CanCharactersRandomlyGet: 0
-    deathChanceIncrease: 0
-  selectedRelationDependable: 7
   relationAmount: 1
   Age: 0
-  myAgeRequierment: 0
-  myDependableAgeRequierment: 0
-  DependableCharacterAge: 10
+  myAgeRequierment: 1
   JobDependant: 0
   AgeDependant: 1
-  DependableCharacterFlag: 0
-  RelationJobDependant: 0
-  RelationAgeDependant: 0
   CanBeGottenAgain: 1
   IsSocialClassDependant: 1
   IsCharacteristicDependant: 0
@@ -52,25 +35,41 @@ MonoBehaviour:
     myCharacteristic: 
     myInheritanceChance: 0
     myDevelopmentChance: 0
-  ChanceOfHappening: 0.1
+  ChanceOfHappening: 10
   socialClass: 1
-  EventTitle: Personal events 18
-  EventText: Two adulterers that was sentenced by the church and were forced to walk
-    the streets of your village without cloths
-  HasSecondEvent: 00
+  EventTitle: what do you wanna be
+  EventText: When asked about what you wanna be when you grow up you answer
   buttonTexts:
-  - 'The tomato prices where real high that day '
-  buttonResultEventText:
-  - 
-  buttonResultEventTitle:
-  - 
-  buttonResultButtonText:
-  - 
+  - I wanna be a peasant
+  - I wanna be a woman
+  - I wanna be a knight
+  myButtonAlternatives:
+  - myButtonResults: []
+  - myButtonResults: []
+  - myButtonResults: []
   RandomizeName: 0
   RandomizeAge: 0
   ShouldHaveJob: 0
   RandomizeJob: 0
   CharacterAge: 0
   CharacterRelation: 7
-  buttonResults:
-  - results: []
+  myDependables:
+  - Age: 10
+    haveOrNotHaveFlag: 1
+    myRelationType: 4
+    AgeRequierment: 0
+    JobDependant: 0
+    AgeDependant: 0
+    ChosenJobb:
+      myJob: 
+      myBaseLowSalary: 0
+      myBaseHighSalary: 0
+      myAcceptanceRate: 0
+      HasSequenceJob: 0
+      canGetPromoted: 0
+      MyYearsTilPromotion: 0
+      IsVisibleInJobMenu: 0
+      CanCharactersRandomlyGet: 0
+      deathChanceIncrease: 0
+    SelectedJob: 0
+    amount: 1

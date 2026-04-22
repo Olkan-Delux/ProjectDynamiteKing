@@ -13,17 +13,6 @@ MonoBehaviour:
   m_Name: EventScriptableObject 2
   m_EditorClassIdentifier: 
   selectedJobOption:
-    myJob: Farmer Apprentice
-    myBaseLowSalary: 1
-    myBaseHighSalary: 10
-    myAcceptanceRate: 100
-    HasSequenceJob: 1
-    canGetPromoted: 1
-    MyYearsTilPromotion: 3
-    IsVisibleInJobMenu: 1
-    CanCharactersRandomlyGet: 0
-    deathChanceIncrease: 0
-  DependableJobOption:
     myJob: 
     myBaseLowSalary: 0
     myBaseHighSalary: 0
@@ -34,17 +23,11 @@ MonoBehaviour:
     IsVisibleInJobMenu: 0
     CanCharactersRandomlyGet: 0
     deathChanceIncrease: 0
-  selectedRelationDependable: 7
   relationAmount: 1
-  Age: 0
-  myAgeRequierment: 0
-  myDependableAgeRequierment: 0
-  DependableCharacterAge: 10
-  JobDependant: 1
-  AgeDependant: 1
-  DependableCharacterFlag: 0
-  RelationJobDependant: 0
-  RelationAgeDependant: 0
+  Age: 14
+  myAgeRequierment: 1
+  JobDependant: 0
+  AgeDependant: 0
   CanBeGottenAgain: 0
   IsSocialClassDependant: 1
   IsCharacteristicDependant: 0
@@ -52,20 +35,17 @@ MonoBehaviour:
     myCharacteristic: 
     myInheritanceChance: 0
     myDevelopmentChance: 0
-  ChanceOfHappening: 10
+  ChanceOfHappening: 1
   socialClass: 1
-  EventTitle: peasant event 1
-  EventText: The years have been hard to you and you are starting to feel pains in
-    your back.
-  HasSecondEvent: 
+  EventTitle: Gay
+  EventText: 'You find that you would much rather be kissing guys as opposed to kissing
+    girls. '
   buttonTexts: []
-  buttonResultEventText: []
-  buttonResultEventTitle: []
-  buttonResultButtonText: []
+  myButtonAlternatives: []
   RandomizeName: 0
   RandomizeAge: 0
   ShouldHaveJob: 0
   RandomizeJob: 0
   CharacterAge: 0
   CharacterRelation: 7
-  buttonResults: []
+  myDependables: []
