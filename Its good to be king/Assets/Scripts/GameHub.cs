@@ -530,13 +530,13 @@ public class GameHub : MonoBehaviour
                 ButtonAlternativeResults result = null;
                 if(myEvents.Events[i].myButtonAlternatives.Count != 0)
                 {
-                    for(int k = 0; k < myEvents.Events[i].myButtonAlternatives.Count; k++)
+                    for(int k = 0; k < myEvents.Events[i].myButtonAlternatives[j].myButtonResults.Count; k++)
                     {
                         totalWeight += myEvents.Events[i].myButtonAlternatives[j].myButtonResults[k].ResultChanceOfHappening;
                     }
                     float randomPoint = Random.Range(0.0f, totalWeight);
                     float current = 0.0f;
-                    for (int k = 0; k < myEvents.Events[i].myButtonAlternatives.Count; k++)
+                    for (int k = 0; k < myEvents.Events[i].myButtonAlternatives[j].myButtonResults.Count; k++)
                     {
                         current += myEvents.Events[i].myButtonAlternatives[j].myButtonResults[k].ResultChanceOfHappening;
                         if(randomPoint <= current)
